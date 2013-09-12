@@ -53,8 +53,6 @@ public final class Redirection extends JavaPlugin implements Listener {
 				} else {
 					player.sendMessage(ChatColor.GOLD + "Invalid number of parameters");
 				}
-			} else {
-				sender.sendMessage("Sender must be a player");
 			}
 		}
 		return false;
