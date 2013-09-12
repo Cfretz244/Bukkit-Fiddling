@@ -1,0 +1,7 @@
+name: Redirection
+main: com.gmail.cfretz244.Redirection
+version: 0.1
+commands:
+redirect:
+description: something
+usage: /something
