@@ -25,8 +25,7 @@ public final class Redirection extends JavaPlugin implements Listener {
 				if(args.length > 0) {
 					if(args[0].toLowerCase().equals("here")) {
 						Location playerLoc = player.getLocation();
-						player.setCompassTarget(playerLoc);
-						player.sendMessage("Location set!");
+						player.setCompassTarget(arg0)
 					}
 				}
 			}

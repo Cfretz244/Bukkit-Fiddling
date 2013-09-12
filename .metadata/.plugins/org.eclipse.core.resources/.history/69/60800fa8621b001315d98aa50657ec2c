@@ -1,6 +1,5 @@
 package com.gmail.cfretz244;
 
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -22,13 +21,6 @@ public final class Redirection extends JavaPlugin implements Listener {
 		if(cmd.getName().equalsIgnoreCase("redirect")) {
 			if(sender instanceof Player) {
 				Player player = (Player)sender;
-				if(args.length > 0) {
-					if(args[0].toLowerCase().equals("here")) {
-						Location playerLoc = player.getLocation();
-						player.setCompassTarget(playerLoc);
-						player.sendMessage("Location set!");
-					}
-				}
 			}
 		}
 		return false;
