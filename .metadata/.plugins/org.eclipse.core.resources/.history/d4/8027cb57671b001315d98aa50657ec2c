@@ -34,13 +34,14 @@ public final class Redirection extends JavaPlugin implements Listener {
 						player.setCompassTarget(playerGaze);
 						player.sendMessage(ChatColor.GOLD + "Location set!");
 					}
-				} else if(args.length == 3) {
+				} else if(args.length == 4) {
 					if(args[0].toLowerCase().equals("there")) {
 						try {
-							double x = Double.parseDouble(args[1]);
+							double x = Double.parseDouble(args[0]);
+							double y = Double.parseDouble(args[1]);
 							double z = Double.parseDouble(args[2]);
 							World world = player.getWorld();
-							Location targetLoc = new Location(world, x, 0, z);
+							Location targetLoc = new Location(world, x, y, z);
 							player.setCompassTarget(targetLoc);
 							player.sendMessage(ChatColor.GOLD + "Location set!");
 						} catch(Exception e) {
