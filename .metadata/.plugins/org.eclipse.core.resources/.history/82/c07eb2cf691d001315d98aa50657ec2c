@@ -1,5 +1,0 @@
-name: Redirection
-version: 0.1
-main:  com.gmail.cfretz244.Redirection
-commands:
-  redirect:

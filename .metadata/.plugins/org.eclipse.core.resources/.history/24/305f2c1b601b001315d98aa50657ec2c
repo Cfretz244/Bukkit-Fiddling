@@ -1,8 +1,0 @@
-name: Redirection
-main: com.gmail.cfretz.Redirection
-version: 1.0
-description: >
-             Youtube Plugin.
-commands:
-  sendme:
-    description: Sent!

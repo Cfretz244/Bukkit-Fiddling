@@ -1,7 +1,0 @@
-name: Notes
-version: 0.1
-main:  com.gmail.cfretz244.Redirection
-commands:
-  redirect:
-  description: Uses
-  usage: /emericask8ur
