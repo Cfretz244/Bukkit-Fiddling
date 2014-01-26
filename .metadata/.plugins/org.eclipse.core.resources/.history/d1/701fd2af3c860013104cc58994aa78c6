@@ -1,0 +1,91 @@
+package com.gmail.cfretz244;
+
+import java.util.HashSet;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public final class Spleefer extends JavaPlugin implements Listener {
+	
+	HashSet<String> registeredPlayers;
+	Location[] killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion;
+	SpleefListener listener;
+	Executor utility;
+	boolean settingUp, definingFightingRoom, definingFloor, definingSpawn, definingKill, definingSpectation;
+	
+	@Override
+	public void onEnable() {
+		registeredPlayers = new HashSet<String>();
+		killRegion = new Location[2];
+		floorRegion = new Location[2];
+		fightingRoomRegion = new Location[3];
+		spectatingRoomRegion = new Location[3];
+		spawningRegion = new Location[3];
+		listener = new SpleefListener(killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion, utility, this);
+		utility = new Executor(killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion, this);
+	}
+	
+	@Override
+	public void onDisable() {
+		
+	}
+	
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if(sender instanceof Player) {
+			Player player = (Player) sender;
+			String name = player.getName();
+			registeredPlayers.add(name);
+			if(cmd.getName().toLowerCase().equals("spleef")) {
+				if(args[0].equals("setup")) {
+					if(!settingUp) {
+						settingUp = true;
+						definingFightingRoom = true;
+						listener.settingUp = true;
+						utility.giveSpleefWand(player);
+						player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the fighting room. Use \"/spleef done\" to indicate you've chosen");
+						getServer().getPluginManager().registerEvents(listener, this);
+						listener.definingFightingRoom = true;
+					} else {
+						player.sendMessage(ChatColor.RED + "[Spleefer] You're already setting up the spleef arena.");
+					}
+					
+				} else if(args[0].equals("done")) {
+					if(settingUp) {
+						if(definingFightingRoom) {
+							definingFightingRoom = false;
+							listener.definingFightingRoom = false;
+							player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the spleef arena floor. Use\"/spleef done\" to indicate you've chosen.");
+							definingFloor = true;
+							listener.definingFloor = true;
+						} else if(definingFloor) {
+							definingFloor = false;
+							listener.definingFloor = false;
+							player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the spleef spawning region. Use \"/spleef done\" to indicate you've chosen.");
+							definingSpawn = true;
+							listener.definingSpawn = true;
+						} else if(definingSpawn) {
+							definingSpawn = false;
+							listener.definingSpawn = false;
+							player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the spleef kill region. Use \"/spleef done\" to indicate you've chosen.");
+							definingKill = true;
+							listener.definingKill = true;
+						} else if(definingSpectation) {
+							
+						}
+					} else {
+						player.sendMessage(ChatColor.RED + "[Spleefer] But you weren't doing anything.");
+					}
+				}
+			}
+		} else {
+			sender.sendMessage(ChatColor.RED + "[Spleefer] Sender must be a player");
+		}
+		return false;
+	}
+	
+}

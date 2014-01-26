@@ -1,0 +1,81 @@
+package com.gmail.cfretz244;
+
+import java.util.HashSet;
+
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public final class Spleefer extends JavaPlugin implements Listener {
+	
+	HashSet<String> registeredPlayers;
+	Location[] killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion;
+	SpleefListener listener;
+	
+	@Override
+	public void onEnable() {
+		getServer().getPluginManager().registerEvents(this, this);;
+		registeredPlayers = new HashSet<String>();
+		killRegion = new Location[2];
+		floorRegion = new Location[2];
+		fightingRoomRegion = new Location[3];
+		spectatingRoomRegion = new Location[3];
+		spawningRegion = new Location[3];
+		listener = new SpleefListener(killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion, this);
+
+	}
+	
+	@Override
+	public void onDisable() {
+		
+	}
+	
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if(sender instanceof Player) {
+			Player player = (Player) sender;
+			String name = player.getName();
+			registeredPlayers.add(name);
+			if(cmd.getName().toLowerCase().equals("spleef")) {
+				if(args[0].equals("setup")) {
+					giveSpleefWand(player);
+				}
+			}
+		} else {
+			sender.sendMessage("Sender must be a player");
+		}
+		return false;
+	}
+	
+	public void giveSpleefWand(Player asker) {
+		Inventory playerInv = asker.getInventory();
+		boolean needsToBeReplaced = true;
+		int chosenSlot = -1;
+		for(int i = 0; i < 36; i++) {
+			ItemStack stack = playerInv.getItem(i);
+			if(stack == null) {
+				if(chosenSlot == -1) {
+					chosenSlot = i;
+				}
+			} else {
+				Material stacktype = stack.getType();
+				if(stacktype == Material.BONE) {
+					needsToBeReplaced = false;
+					chosenSlot = i;
+				}
+			}
+		}
+		if(chosenSlot != -1 && needsToBeReplaced) {
+			ItemStack replacementStack = new ItemStack(Material.BONE);
+			playerInv.setItem(chosenSlot, replacementStack);
+		}
+	}
+	
+	
+	
+}

@@ -1,0 +1,57 @@
+package com.gmail.cfretz244;
+
+import java.util.HashSet;
+
+import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
+
+public final class Spleefer extends JavaPlugin implements Listener {
+	
+	HashSet<String> registeredPlayers;
+	Location[] killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion;
+	SpleefListener listener;
+	Executor utility;
+	
+	@Override
+	public void onEnable() {
+		getServer().getPluginManager().registerEvents(this, this);;
+		registeredPlayers = new HashSet<String>();
+		killRegion = new Location[2];
+		floorRegion = new Location[2];
+		fightingRoomRegion = new Location[3];
+		spectatingRoomRegion = new Location[3];
+		spawningRegion = new Location[3];
+		listener = new SpleefListener(killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion, utility, this);
+		utility = new Executor(killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion, this);
+	}
+	
+	@Override
+	public void onDisable() {
+		
+	}
+	
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if(sender instanceof Player) {
+			Player player = (Player) sender;
+			String name = player.getName();
+			registeredPlayers.add(name);
+			if(cmd.getName().toLowerCase().equals("spleef")) {
+				if(args[0].equals("setup")) {
+					utility.giveSpleefWand(player);
+				}
+			}
+		} else {
+			sender.sendMessage("Sender must be a player");
+		}
+		return false;
+	}
+	
+	
+	
+	
+	
+}

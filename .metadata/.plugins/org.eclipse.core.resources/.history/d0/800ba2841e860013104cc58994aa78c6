@@ -1,0 +1,7 @@
+name: Spleefer
+version: 0.1
+main:  com.gmail.cfretz244.Spleefer
+commands:
+  spleef:
+  
+  
