@@ -13,18 +13,29 @@ import org.bukkit.inventory.ItemStack;
 
 public class Executor {
 	
-	HashSet<String> registeredPlayers;
-	HashMap<String, Location> previousLocations;
+	HashSet<String> registeredPlayers, registeredSpectators, listenTo;
+	HashMap<String, Location> previousPlayerLocations, previousSpectatorLocations;
 	Location[] killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion;
 	Spleefer plugin;
 	
-	public Executor(Location[] kill, Location[] floor, Location[] fighting, Location[] spectating, Location[] spawning, Spleefer plugin) {
+	public Executor(Location[] kill, Location[] floor, Location[] fighting, Location[] spectating, Location[] spawning, HashSet<String>registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, Spleefer plugin) {
 		killRegion = kill;
 		floorRegion = floor;
 		fightingRoomRegion = fighting;
 		spectatingRoomRegion = spectating;
 		spawningRegion = spawning;
+		this.registeredPlayers = registeredPlayers;
+		this.registeredSpectators = registeredSpectators;
+		this.listenTo = listenTo;
 		this.plugin = plugin;
+	}
+	
+	public void broadcastToRegisteredPlayers(Server server, String message) {
+		Iterator<String> players = listenTo.iterator();
+		while(players.hasNext()) {
+			Player player = server.getPlayer(players.next());
+			player.sendMessage(message);
+		}
 	}
 
 	public boolean containedIn(Location[] actionSpace, Location playerLoc) {
@@ -135,13 +146,8 @@ public class Executor {
 	
 	public boolean validateSpleefState() {
 		boolean mayBegin = true;
-		for(int i = 0; i < 3; i++) {
-			if(i < 3) {
-				if(killRegion[i] == null || floorRegion[i] == null) {
-					mayBegin = false;
-				}
-			}
-			if(fightingRoomRegion[i] == null || spectatingRoomRegion == null || spawningRegion[i] == null) {
+		for(int i = 0; i < 2; i++) {
+			if(fightingRoomRegion[i] == null || spectatingRoomRegion[i] == null || spawningRegion[i] == null || killRegion[i] == null || floorRegion[i] == null) {
 				mayBegin = false;
 			}
 		}
@@ -159,12 +165,64 @@ public class Executor {
 	}
 	
 	public void movePlayersToSpawn(Server server) {
+		Location newLocale;
+		if(Math.min(spawningRegion[0].getY(), spawningRegion[1].getY()) == spawningRegion[0].getY()) {
+			if(Math.min(spawningRegion[0].getX(), spawningRegion[1].getX()) == spawningRegion[0].getX()) {
+				newLocale = new Location(spawningRegion[0].getWorld(), spawningRegion[0].getX() + 1, spawningRegion[0].getY(), spawningRegion[0].getZ());
+			} else {
+				newLocale = new Location(spawningRegion[0].getWorld(), spawningRegion[0].getX() - 1, spawningRegion[0].getY(), spawningRegion[0].getZ());
+			}
+		} else {
+			if(Math.min(spawningRegion[0].getX(), spawningRegion[1].getX()) == spawningRegion[1].getX()) {
+				newLocale = new Location(spawningRegion[1].getWorld(), spawningRegion[1].getX() + 1, spawningRegion[1].getY(), spawningRegion[1].getZ());
+			} else {
+				newLocale = new Location(spawningRegion[1].getWorld(), spawningRegion[1].getX() - 1, spawningRegion[1].getY(), spawningRegion[1].getZ());
+			}
+		}
 		Iterator<String> players = registeredPlayers.iterator();
-		previousLocations = new HashMap<String, Location>();
+		previousPlayerLocations = new HashMap<String, Location>();
 		while(players.hasNext()) {
 			String name = players.next();
 			Player teleporter = server.getPlayer(name);
-			previousLocations.put(name, teleporter.getLocation());
+			previousPlayerLocations.put(name, teleporter.getLocation());
+			teleporter.teleport(newLocale);
+		}
+	}
+	
+	public void moveSpectator(Server server, Player spectator) {
+		Location newLocale;
+		if(Math.min(spectatingRoomRegion[0].getY(), spectatingRoomRegion[1].getY()) == spectatingRoomRegion[0].getY()) {
+			if(Math.min(spectatingRoomRegion[0].getX(), spectatingRoomRegion[1].getX()) == spectatingRoomRegion[0].getX()) {
+				newLocale = new Location(spectatingRoomRegion[0].getWorld(), spectatingRoomRegion[0].getX() + 1, spectatingRoomRegion[0].getY(), spectatingRoomRegion[0].getZ());
+			} else {
+				newLocale = new Location(spectatingRoomRegion[0].getWorld(), spectatingRoomRegion[0].getX() - 1, spectatingRoomRegion[0].getY(), spectatingRoomRegion[0].getZ());
+			}
+		} else {
+			if(Math.min(spectatingRoomRegion[0].getX(), spectatingRoomRegion[1].getX()) == spectatingRoomRegion[1].getX()) {
+				newLocale = new Location(spectatingRoomRegion[1].getWorld(), spectatingRoomRegion[1].getX() + 1, spectatingRoomRegion[1].getY(), spectatingRoomRegion[1].getZ());
+			} else {
+				newLocale = new Location(spectatingRoomRegion[1].getWorld(), spectatingRoomRegion[1].getX() - 1, spectatingRoomRegion[1].getY(), spectatingRoomRegion[1].getZ());
+			}
+		}
+		String name = spectator.getName();
+		previousSpectatorLocations.put(name, spectator.getLocation());
+		spectator.teleport(newLocale);
+	}
+	
+	public void removePlayer(Server server, String name) {
+		if(registeredPlayers.contains(name)) {
+			registeredPlayers.remove(name);
+			Player player = server.getPlayer(name);
+			player.teleport(previousPlayerLocations.get(name));
+			previousPlayerLocations.remove(name);
+		} else {
+			registeredSpectators.remove(name);
+			Player spectator = server.getPlayer(name);
+			spectator.teleport(previousSpectatorLocations.get(name));
+			previousSpectatorLocations.remove(name);
+		}
+		if(listenTo.contains(name)) {
+			listenTo.remove(name);
 		}
 	}
 
