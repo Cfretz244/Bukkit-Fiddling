@@ -19,20 +19,17 @@ public final class SpleefListener implements Listener {
 	
 	HashSet<String> registeredPlayers, registeredSpectators, listenTo;
 	HashMap<String, Boolean> startInfo;
-	Location[] killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion;
+	Location[][] regions;
 	Spleefer plugin;
 	Executor utility;
 	boolean settingUp, definingFightingRoom, definingFloor, definingSpawn, definingKill, definingSpectation, finishedDefinition, shouldListenForMovement, shouldListenForBlockInteraction;
 	boolean waitingToCommence;
+	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
-	public SpleefListener(Location[] kill, Location[] floor, Location[] fighting, Location[] spectating, Location[] spawning, HashSet<String> registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, Executor utility, Spleefer plugin) {
+	public SpleefListener(Location[][] regions, HashSet<String> registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, Executor utility, Spleefer plugin) {
 		registeredPlayers = new HashSet<String>();
 		startInfo = new HashMap<String, Boolean>();
-		killRegion = kill;
-		floorRegion = floor;
-		fightingRoomRegion = fighting;
-		spectatingRoomRegion = spectating;
-		spawningRegion = spawning;
+		this.regions = regions;
 		this.registeredPlayers = registeredPlayers;
 		this.registeredSpectators = registeredSpectators;
 		this.listenTo = listenTo;
@@ -50,38 +47,38 @@ public final class SpleefListener implements Listener {
 					if(event.getAction() == Action.LEFT_CLICK_BLOCK) {
 						if(settingUp) {
 							if(definingFightingRoom) {
-								fightingRoomRegion[0] = sender.getTargetBlock(null, 50).getLocation();
+								regions[FIGHTING][0] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
 							} else if(definingFloor) {
-								floorRegion[0] = sender.getTargetBlock(null, 50).getLocation();
+								regions[FLOOR][0] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
 							} else if(definingSpawn) {
-								spawningRegion[0] = sender.getTargetBlock(null, 50).getLocation();
+								regions[SPAWNING][0] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
 							} else if(definingKill) {
-								killRegion[0] = sender.getTargetBlock(null, 50).getLocation();
+								regions[KILL][0] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
 							} else if(definingSpectation) {
-								spectatingRoomRegion[0] = sender.getTargetBlock(null, 50).getLocation();
+								regions[SPECTATING][0] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
 							}
 						}
 					} else if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 						if(settingUp) {
 							if(definingFightingRoom) {
-								fightingRoomRegion[1] = sender.getTargetBlock(null, 50).getLocation();
+								regions[FIGHTING][1] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingFloor) {
-								floorRegion[1] = sender.getTargetBlock(null, 50).getLocation();
+								regions[FLOOR][1] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingSpawn) {
-								spawningRegion[1] = sender.getTargetBlock(null, 50).getLocation();
+								regions[SPAWNING][1] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingKill) {
-								killRegion[1] = sender.getTargetBlock(null, 50).getLocation();
+								regions[KILL][1] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingSpectation) {
-								spectatingRoomRegion[1] = sender.getTargetBlock(null, 50).getLocation();
+								regions[SPECTATING][1] = sender.getTargetBlock(null, 50).getLocation();
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							}
 						}
@@ -95,11 +92,10 @@ public final class SpleefListener implements Listener {
 	public void onPlayerMove(PlayerMoveEvent event) {
 		if(shouldListenForMovement) {
 			Player player = event.getPlayer();
-			if(registeredPlayers.contains(player.getName())) {
+			if(listenTo.contains(player.getName().toLowerCase())) {
 				if(waitingToCommence) {
 					boolean shouldCommence = true;
-					Player mover = event.getPlayer();
-					startInfo.put(mover.getName(), new Boolean(utility.containedIn(spawningRegion, event.getTo())));
+					startInfo.put(player.getName(), new Boolean(utility.containedIn(regions[SPAWNING], event.getTo())));
 					Iterator<String> names = startInfo.keySet().iterator();
 					while(names.hasNext()) {
 						if(!startInfo.get(names.next()).booleanValue()) {

@@ -1,6 +1,11 @@
 package com.gmail.cfretz244;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.Stack;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -13,23 +18,24 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class Spleefer extends JavaPlugin implements Listener {
 	
 	HashSet<String> registeredPlayers, registeredSpectators, listenTo;
-	Location[] killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion;
+	Location[][] regions;
 	SpleefListener listener;
 	Executor utility;
+	String world;
 	boolean settingUp, definingFightingRoom, definingFloor, definingSpawn, definingKill, definingSpectation, finishedDefinition, inRound;
+	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
 	@Override
 	public void onEnable() {
+		regions = new Location[5][];
+		for(int i = 0; i < 5; i++) {
+			regions[i] = new Location[2];
+		}
 		registeredPlayers = new HashSet<String>();
 		registeredSpectators = new HashSet<String>();
 		listenTo = new HashSet<String>();
-		killRegion = new Location[2];
-		floorRegion = new Location[2];
-		fightingRoomRegion = new Location[2];
-		spectatingRoomRegion = new Location[2];
-		spawningRegion = new Location[2];
-		listener = new SpleefListener(killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion, registeredPlayers, registeredSpectators, listenTo, utility, this);
-		utility = new Executor(killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion, registeredPlayers, registeredSpectators, listenTo, this);
+		listener = new SpleefListener(regions, registeredPlayers, registeredSpectators, listenTo, utility, this);
+		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, this);
 	}
 	
 	@Override
@@ -60,6 +66,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 				} else if(args[0].equals("done")) {
 					if(settingUp) {
 						if(definingFightingRoom) {
+							world = regions[FIGHTING][0].getWorld().getName();
 							definingFightingRoom = false;
 							listener.definingFightingRoom = false;
 							player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the spleef arena floor. Use\"/spleef done\" to indicate you've chosen.");
@@ -100,9 +107,28 @@ public final class Spleefer extends JavaPlugin implements Listener {
 					if(settingUp) {
 						if(finishedDefinition) {
 							finishedDefinition = false;
-							//save
+							try {
+								File arenas = new File("plugins/spleefer.yml");
+								arenas.createNewFile();
+								FileWriter writer = new FileWriter(arenas, true);
+								PrintWriter pw = new PrintWriter(writer);
+								String arenaString = new String(world + "|");
+								for(int i = 0; i < 5; i++) {
+									for(int k = 0; k < 2; k++) {
+										arenaString += regions[i][k].getX() + "|";
+										arenaString += regions[i][k].getY() + "|";
+										arenaString += regions[i][k].getZ() + "|";
+									}
+								}
+								arenaString = arenaString.substring(0, arenaString.length() - 1);
+								pw.print(arenaString);
+								pw.close();
+								player.sendMessage(ChatColor.GREEN + "[Spleefer] Arena Saved");
+							} catch(IOException e) {
+								player.sendMessage(ChatColor.RED + "[Spleefer] Sorry, the arena could not be saved. Perhaps try again later.");
+							}
 						} else {
-							player.sendMessage(ChatColor.RED + "[Spleefer] Really not sure how you got here. This message was added more for completeness than anything else. Either way, something is wrong. I guess try resetting the server?");
+							player.sendMessage(ChatColor.RED + "[Spleefer] You need to define an arena before you can save.");
 						}
 					} else {
 						player.sendMessage(ChatColor.RED + "[Spleefer] There's nothing to save.");
@@ -110,11 +136,11 @@ public final class Spleefer extends JavaPlugin implements Listener {
 				} else if(args[0].equals("discard")) {
 					if(settingUp) {
 						for(int i = 0; i < 2; i++) {
-							killRegion[i] = null;
-							floorRegion[i] = null;
-							fightingRoomRegion[i] = null;
-							spectatingRoomRegion[i] = null;
-							spawningRegion[i] = null;
+							regions[KILL][i] = null;
+							regions[FLOOR][i] = null;
+							regions[FIGHTING][i] = null;
+							regions[SPECTATING][i] = null;
+							regions[SPAWNING][i] = null;
 						}
 						settingUp = false;
 						player.sendMessage(ChatColor.GREEN + "[Spleefer] Done. Better luck next time.");
@@ -125,7 +151,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 					if(utility.validateSpleefState()) {
 						if(args.length > 2) {
 							if(utility.validatePlayerNames(player, args, getServer())) {
-								for(int i = 0; i < args.length; i++) {
+								for(int i = 1; i < args.length; i++) {
 									registeredPlayers.add(args[i]);
 									listenTo.add(args[i]);
 								}
@@ -157,6 +183,10 @@ public final class Spleefer extends JavaPlugin implements Listener {
 					} else {
 						player.sendMessage(ChatColor.RED + "[Spleefer] There isn't a round running currently.");
 					}
+				} else if(args[0].equals("clear")) {
+					listenTo.clear();
+					registeredPlayers.clear();
+					registeredSpectators.clear();
 				}
 			}
 		} else {

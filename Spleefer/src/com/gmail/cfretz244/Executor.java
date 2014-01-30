@@ -15,15 +15,12 @@ public class Executor {
 	
 	HashSet<String> registeredPlayers, registeredSpectators, listenTo;
 	HashMap<String, Location> previousPlayerLocations, previousSpectatorLocations;
-	Location[] killRegion, floorRegion, fightingRoomRegion, spectatingRoomRegion, spawningRegion;
+	Location[][] regions;
 	Spleefer plugin;
+	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
-	public Executor(Location[] kill, Location[] floor, Location[] fighting, Location[] spectating, Location[] spawning, HashSet<String>registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, Spleefer plugin) {
-		killRegion = kill;
-		floorRegion = floor;
-		fightingRoomRegion = fighting;
-		spectatingRoomRegion = spectating;
-		spawningRegion = spawning;
+	public Executor(Location[][] regions, HashSet<String>registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, Spleefer plugin) {
+		this.regions = regions;
 		this.registeredPlayers = registeredPlayers;
 		this.registeredSpectators = registeredSpectators;
 		this.listenTo = listenTo;
@@ -147,7 +144,7 @@ public class Executor {
 	public boolean validateSpleefState() {
 		boolean mayBegin = true;
 		for(int i = 0; i < 2; i++) {
-			if(fightingRoomRegion[i] == null || spectatingRoomRegion[i] == null || spawningRegion[i] == null || killRegion[i] == null || floorRegion[i] == null) {
+			if(regions[FIGHTING][i] == null || regions[SPECTATING][i] == null || regions[SPAWNING][i] == null || regions[KILL][i] == null || regions[FLOOR][i] == null) {
 				mayBegin = false;
 			}
 		}
@@ -165,10 +162,10 @@ public class Executor {
 	}
 	
 	public void movePlayersToSpawn(Server server) {
-		double y = Math.min(spawningRegion[0].getY(), spawningRegion[1].getY()) + 1;
-		double x = (spawningRegion[0].getX() + spawningRegion[1].getX()) / 2;
-		double z = (spawningRegion[0].getZ() + spawningRegion[1].getZ()) / 2;
-		Location newLocale = new Location(spawningRegion[0].getWorld(), x, y, z);
+		double y = Math.min(regions[SPAWNING][0].getY(), regions[SPAWNING][1].getY()) + 1;
+		double x = (regions[SPAWNING][0].getX() + regions[SPAWNING][1].getX()) / 2;
+		double z = (regions[SPAWNING][0].getZ() + regions[SPAWNING][1].getZ()) / 2;
+		Location newLocale = new Location(regions[SPAWNING][0].getWorld(), x, y, z);
 		Iterator<String> players = registeredPlayers.iterator();
 		previousPlayerLocations = new HashMap<String, Location>();
 		while(players.hasNext()) {
@@ -180,10 +177,10 @@ public class Executor {
 	}
 	
 	public void moveSpectator(Server server, Player spectator) {
-		double y = Math.min(spectatingRoomRegion[0].getY(), spectatingRoomRegion[1].getY());
-		double x = (spectatingRoomRegion[0].getX() + spectatingRoomRegion[1].getX()) / 2;
-		double z = (spectatingRoomRegion[0].getZ() + spectatingRoomRegion[1].getZ()) / 2;
-		Location newLocale = new Location(spectatingRoomRegion[0].getWorld(), x, y, z);
+		double y = Math.min(regions[SPECTATING][0].getY(), regions[SPECTATING][1].getY());
+		double x = (regions[SPECTATING][0].getX() + regions[SPECTATING][1].getX()) / 2;
+		double z = (regions[SPECTATING][0].getZ() + regions[SPECTATING][1].getZ()) / 2;
+		Location newLocale = new Location(regions[SPECTATING][0].getWorld(), x, y, z);
 		String name = spectator.getName();
 		previousSpectatorLocations.put(name, spectator.getLocation());
 		spectator.teleport(newLocale);
