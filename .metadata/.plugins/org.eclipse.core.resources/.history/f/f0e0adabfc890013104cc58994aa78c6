@@ -7,7 +7,6 @@ import java.util.Iterator;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -69,7 +68,6 @@ public final class SpleefListener implements Listener {
 							Location blockLocation = event.getClickedBlock().getLocation();
 							if(utility.containedIn(regions[FLOOR], blockLocation)) {
 								Block clickedBlock = event.getClickedBlock();
-								clickedBlock.breakNaturally();
 							}
 						}
 					}

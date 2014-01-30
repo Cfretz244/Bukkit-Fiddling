@@ -7,7 +7,6 @@ import java.util.Iterator;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,6 +27,7 @@ public final class SpleefListener implements Listener {
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
 	public SpleefListener(Location[][] regions, HashSet<String> registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, Executor utility, Spleefer plugin) {
+		registeredPlayers = new HashSet<String>();
 		startInfo = new HashMap<String, Boolean>();
 		this.regions = regions;
 		this.registeredPlayers = registeredPlayers;
@@ -65,11 +65,10 @@ public final class SpleefListener implements Listener {
 							}
 						}
 					} else if(inRound) {
-						if(registeredPlayers.contains(sender.getName().toLowerCase())) {
+						if(registeredPlayers.contains(sender.getName())) {
 							Location blockLocation = event.getClickedBlock().getLocation();
 							if(utility.containedIn(regions[FLOOR], blockLocation)) {
-								Block clickedBlock = event.getClickedBlock();
-								clickedBlock.breakNaturally();
+								sender.sendMessage("That's the floor");
 							}
 						}
 					}

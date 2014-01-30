@@ -69,7 +69,6 @@ public final class SpleefListener implements Listener {
 							Location blockLocation = event.getClickedBlock().getLocation();
 							if(utility.containedIn(regions[FLOOR], blockLocation)) {
 								Block clickedBlock = event.getClickedBlock();
-								clickedBlock.breakNaturally();
 							}
 						}
 					}
