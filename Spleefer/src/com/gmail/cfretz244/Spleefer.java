@@ -21,7 +21,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 	Location[][] regions;
 	SpleefListener listener;
 	Executor utility;
-	String world;
 	boolean settingUp, definingFightingRoom, definingFloor, definingSpawn, definingKill, definingSpectation, finishedDefinition, inRound;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
@@ -36,18 +35,17 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		listenTo = new HashSet<String>();
 		listener = new SpleefListener(regions, registeredPlayers, registeredSpectators, listenTo, utility, this);
 		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, this);
-	}
-	
-	@Override
-	public void onDisable() {
-		
+		File check = new File("plugins/spleefer.yml");
+		if(check.exists()) {
+			utility.loadArena(check, getServer());
+		}
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 		if(sender instanceof Player) {
 			Player player = (Player) sender;
 			String name = player.getName();
-			if(cmd.getName().toLowerCase().equals("spleef")) {
+			if(cmd.getName().equals("spleef")) {
 				if(args[0].equals("setup")) {
 					if(!settingUp) {
 						listenTo.add(name);
@@ -66,7 +64,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 				} else if(args[0].equals("done")) {
 					if(settingUp) {
 						if(definingFightingRoom) {
-							world = regions[FIGHTING][0].getWorld().getName();
 							definingFightingRoom = false;
 							listener.definingFightingRoom = false;
 							player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the spleef arena floor. Use\"/spleef done\" to indicate you've chosen.");
@@ -107,25 +104,11 @@ public final class Spleefer extends JavaPlugin implements Listener {
 					if(settingUp) {
 						if(finishedDefinition) {
 							finishedDefinition = false;
-							try {
-								File arenas = new File("plugins/spleefer.yml");
-								arenas.createNewFile();
-								FileWriter writer = new FileWriter(arenas, true);
-								PrintWriter pw = new PrintWriter(writer);
-								String arenaString = new String(world + "|");
-								for(int i = 0; i < 5; i++) {
-									for(int k = 0; k < 2; k++) {
-										arenaString += regions[i][k].getX() + "|";
-										arenaString += regions[i][k].getY() + "|";
-										arenaString += regions[i][k].getZ() + "|";
-									}
-								}
-								arenaString = arenaString.substring(0, arenaString.length() - 1);
-								pw.print(arenaString);
-								pw.close();
-								player.sendMessage(ChatColor.GREEN + "[Spleefer] Arena Saved");
-							} catch(IOException e) {
-								player.sendMessage(ChatColor.RED + "[Spleefer] Sorry, the arena could not be saved. Perhaps try again later.");
+							if(utility.saveArena(player, regions[FIGHTING][0].getWorld().getName())) {
+								player.sendMessage(ChatColor.GREEN + "[Spleefer] Arena Saved.");
+							} else {
+								finishedDefinition = true;
+								player.sendMessage(ChatColor.RED + "[Spleefer] Unfortunately the arena could not be saved. Feel free to try again.");
 							}
 						} else {
 							player.sendMessage(ChatColor.RED + "[Spleefer] You need to define an arena before you can save.");

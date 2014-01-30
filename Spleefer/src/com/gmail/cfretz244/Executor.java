@@ -1,5 +1,11 @@
 package com.gmail.cfretz244;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -200,6 +206,53 @@ public class Executor {
 		}
 		if(listenTo.contains(name)) {
 			listenTo.remove(name);
+		}
+	}
+	
+	public boolean saveArena(Player player, String world) {
+		try {
+			File arenas = new File("plugins/spleefer.yml");
+			arenas.createNewFile();
+			FileWriter writer = new FileWriter(arenas, true);
+			PrintWriter pw = new PrintWriter(writer);
+			String arenaString = new String(world + "|");
+			for(int i = 0; i < 5; i++) {
+				for(int k = 0; k < 2; k++) {
+					arenaString += regions[i][k].getX() + "|";
+					arenaString += regions[i][k].getY() + "|";
+					arenaString += regions[i][k].getZ() + "|";
+				}
+			}
+			arenaString = arenaString.substring(0, arenaString.length() - 1);
+			pw.print(arenaString);
+			pw.close();
+			return true;
+		} catch(IOException e) {
+			return false;
+		}
+	}
+	
+	public void loadArena(File arenaInfo, Server server) {
+		String arenaString;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(arenaInfo));
+			arenaString = br.readLine();
+			br.close();
+		} catch(Exception e) {
+			server.getLogger().info("Arena loading failed.");
+			return;
+		}
+		String[] specifics = arenaString.split("\\|");
+		String world = specifics[0];
+		for(int i = 4; i >= 0; i--) {
+			int index = (i + 1) * 6;
+			for(int k = 1; k >= 0; k--) {
+				double z = Double.parseDouble(specifics[index--]);
+				double y = Double.parseDouble(specifics[index--]);
+				double x = Double.parseDouble(specifics[index--]);
+				Location locale = new Location(server.getWorld(world), x, y, z);
+				regions[i][k] = locale;
+			}
 		}
 	}
 

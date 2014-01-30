@@ -1212,3 +1212,6 @@ org.eclipse.core.commands.NotEnabledException: Trying to execute the disabled co
 	at org.eclipse.equinox.launcher.Main.invokeFramework(Main.java:636)
 	at org.eclipse.equinox.launcher.Main.basicRun(Main.java:591)
 	at org.eclipse.equinox.launcher.Main.run(Main.java:1450)
+
+!ENTRY net.sourceforge.vrapper.eclipse 1 0 2014-01-29 23:27:18.131
+!MESSAGE TODO: implement ConvertingState's union efficently
