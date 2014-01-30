@@ -65,10 +65,7 @@ public final class SpleefListener implements Listener {
 							}
 						} else if(inRound) {
 							if(registeredPlayers.contains(sender.getName())) {
-								Location blockLocation = event.getClickedBlock().getLocation();
-								if(utility.containedIn(regions[FLOOR], blockLocation)) {
-									sender.sendMessage("That's the floor");
-								}
+								Block clickedBlock = event.getClickedBlock();
 							}
 						}
 					} else if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -103,7 +100,7 @@ public final class SpleefListener implements Listener {
 			if(listenTo.contains(player.getName().toLowerCase())) {
 				if(waitingToCommence) {
 					boolean shouldWait = false;
-					startInfo.put(player.getName().toLowerCase(), new Boolean(utility.containedIn(regions[SPAWNING], event.getTo())));
+					startInfo.put(player.getName(), new Boolean(utility.containedIn(regions[SPAWNING], event.getTo())));
 					Iterator<String> names = startInfo.keySet().iterator();
 					while(names.hasNext()) {
 						if(startInfo.get(names.next()).booleanValue()) {

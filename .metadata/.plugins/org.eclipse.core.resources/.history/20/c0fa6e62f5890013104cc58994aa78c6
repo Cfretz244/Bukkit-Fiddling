@@ -23,7 +23,6 @@ public class Executor {
 	HashMap<String, Location> previousPlayerLocations, previousSpectatorLocations;
 	Location[][] regions;
 	Spleefer plugin;
-	SpleefListener listener;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
 	public Executor(Location[][] regions, HashSet<String>registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, Spleefer plugin) {
@@ -42,8 +41,8 @@ public class Executor {
 		}
 	}
 
-	public boolean containedIn(Location[] actionSpace, Location location) {
-		if(actionSpace[0] == null || actionSpace[1] == null || location == null) {
+	public boolean containedIn(Location[] actionSpace, Location playerLoc) {
+		if(actionSpace[0] == null || actionSpace[1] == null || playerLoc == null) {
 			return false;
 		}
 		Location point1 = actionSpace[0];
@@ -54,9 +53,9 @@ public class Executor {
 		double Z2 = point2.getZ();
 		double Y1 = point1.getY();
 		double Y2 = point2.getY();
-		double pX = Math.floor(location.getX());
-		double pY = Math.floor(location.getY());
-		double pZ = Math.floor(location.getZ());
+		double pX = Math.floor(playerLoc.getX());
+		double pY = Math.floor(playerLoc.getY()) - 1;
+		double pZ = Math.floor(playerLoc.getZ());
 		if(Y1 > Y2 && (pY < Y2 || pY > Y1)) {
 			return false;
 		} else if(Y1 == Y2 && pY != Y1) {
@@ -179,7 +178,6 @@ public class Executor {
 			String name = players.next();
 			Player teleporter = server.getPlayer(name);
 			previousPlayerLocations.put(name, teleporter.getLocation());
-			listener.startInfo.put(name.toLowerCase(), new Boolean(true));
 			teleporter.teleport(newLocale);
 		}
 	}

@@ -179,7 +179,7 @@ public class Executor {
 			String name = players.next();
 			Player teleporter = server.getPlayer(name);
 			previousPlayerLocations.put(name, teleporter.getLocation());
-			listener.startInfo.put(name.toLowerCase(), new Boolean(true));
+			listener.startInfo.put(name, new Boolean(true));
 			teleporter.teleport(newLocale);
 		}
 	}
