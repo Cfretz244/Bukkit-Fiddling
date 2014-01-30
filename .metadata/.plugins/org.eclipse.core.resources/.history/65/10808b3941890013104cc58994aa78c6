@@ -76,13 +76,10 @@ public final class SpleefListener implements Listener {
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingSpawn) {
 								spawningRegion[1] = sender.getTargetBlock(null, 50).getLocation();
-								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingKill) {
 								killRegion[1] = sender.getTargetBlock(null, 50).getLocation();
-								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingSpectation) {
 								spectatingRoomRegion[1] = sender.getTargetBlock(null, 50).getLocation();
-								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							}
 						}
 					}

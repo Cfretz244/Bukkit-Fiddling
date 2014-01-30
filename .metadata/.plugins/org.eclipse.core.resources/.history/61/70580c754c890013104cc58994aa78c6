@@ -165,10 +165,10 @@ public class Executor {
 	}
 	
 	public void movePlayersToSpawn(Server server) {
+		Location newLocale;
 		double y = Math.min(spawningRegion[0].getY(), spawningRegion[1].getY()) + 1;
 		double x = (spawningRegion[0].getX() + spawningRegion[1].getX()) / 2;
-		double z = (spawningRegion[0].getZ() + spawningRegion[1].getZ()) / 2;
-		Location newLocale = new Location(spawningRegion[0].getWorld(), x, y, z);
+		double z = (spawningRegion[0].getZ() + spawningRegion[1].getZ() / 2);
 		Iterator<String> players = registeredPlayers.iterator();
 		previousPlayerLocations = new HashMap<String, Location>();
 		while(players.hasNext()) {
@@ -180,10 +180,20 @@ public class Executor {
 	}
 	
 	public void moveSpectator(Server server, Player spectator) {
-		double y = Math.min(spectatingRoomRegion[0].getY(), spectatingRoomRegion[1].getY());
-		double x = (spectatingRoomRegion[0].getX() + spectatingRoomRegion[1].getX()) / 2;
-		double z = (spectatingRoomRegion[0].getZ() + spectatingRoomRegion[1].getZ()) / 2;
-		Location newLocale = new Location(spectatingRoomRegion[0].getWorld(), x, y, z);
+		Location newLocale;
+		if(Math.min(spectatingRoomRegion[0].getY(), spectatingRoomRegion[1].getY()) == spectatingRoomRegion[0].getY()) {
+			if(Math.min(spectatingRoomRegion[0].getX(), spectatingRoomRegion[1].getX()) == spectatingRoomRegion[0].getX()) {
+				newLocale = new Location(spectatingRoomRegion[0].getWorld(), spectatingRoomRegion[0].getX() + 1, spectatingRoomRegion[0].getY(), spectatingRoomRegion[0].getZ());
+			} else {
+				newLocale = new Location(spectatingRoomRegion[0].getWorld(), spectatingRoomRegion[0].getX() - 1, spectatingRoomRegion[0].getY(), spectatingRoomRegion[0].getZ());
+			}
+		} else {
+			if(Math.min(spectatingRoomRegion[0].getX(), spectatingRoomRegion[1].getX()) == spectatingRoomRegion[1].getX()) {
+				newLocale = new Location(spectatingRoomRegion[1].getWorld(), spectatingRoomRegion[1].getX() + 1, spectatingRoomRegion[1].getY(), spectatingRoomRegion[1].getZ());
+			} else {
+				newLocale = new Location(spectatingRoomRegion[1].getWorld(), spectatingRoomRegion[1].getX() - 1, spectatingRoomRegion[1].getY(), spectatingRoomRegion[1].getZ());
+			}
+		}
 		String name = spectator.getName();
 		previousSpectatorLocations.put(name, spectator.getLocation());
 		spectator.teleport(newLocale);

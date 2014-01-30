@@ -51,7 +51,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 						utility.giveSpleefWand(player);
 						player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the fighting room. Use \"/spleef done\" to indicate you've chosen");
 						getServer().getPluginManager().registerEvents(listener, this);
-						listener.shouldListenForBlockInteraction = true;
 						listener.definingFightingRoom = true;
 					} else {
 						player.sendMessage(ChatColor.RED + "[Spleefer] You're already setting up the spleef arena.");

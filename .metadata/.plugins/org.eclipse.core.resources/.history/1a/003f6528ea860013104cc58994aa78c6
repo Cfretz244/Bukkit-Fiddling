@@ -22,7 +22,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 	public void onEnable() {
 		registeredPlayers = new HashSet<String>();
 		registeredSpectators = new HashSet<String>();
-		listenTo = new HashSet<String>();
 		killRegion = new Location[2];
 		floorRegion = new Location[2];
 		fightingRoomRegion = new Location[2];
@@ -51,7 +50,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 						utility.giveSpleefWand(player);
 						player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the fighting room. Use \"/spleef done\" to indicate you've chosen");
 						getServer().getPluginManager().registerEvents(listener, this);
-						listener.shouldListenForBlockInteraction = true;
 						listener.definingFightingRoom = true;
 					} else {
 						player.sendMessage(ChatColor.RED + "[Spleefer] You're already setting up the spleef arena.");
@@ -170,10 +168,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		utility.broadcastToRegisteredPlayers(getServer(), ChatColor.YELLOW + "[Spleefer] The round will commence once all participants have left the spawn area.");
 		listener.shouldListenForMovement = true;
 		listener.waitingToCommence = true;
-	}
-	
-	public void runRound() {
-		listener.waitingToCommence = false;
 	}
 	
 }

@@ -27,7 +27,7 @@ public final class SpleefListener implements Listener {
 	
 	public SpleefListener(Location[] kill, Location[] floor, Location[] fighting, Location[] spectating, Location[] spawning, HashSet<String> registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, Executor utility, Spleefer plugin) {
 		registeredPlayers = new HashSet<String>();
-		startInfo = new HashMap<String, Boolean>();
+		shouldCommence = new HashMap<String, Boolean>();
 		killRegion = kill;
 		floorRegion = floor;
 		fightingRoomRegion = fighting;
@@ -43,7 +43,7 @@ public final class SpleefListener implements Listener {
 	public void onPlayerInteractBlock(PlayerInteractEvent event) {
 		if(shouldListenForBlockInteraction) {
 			Player sender = event.getPlayer();
-			if(listenTo.contains(sender.getName())) {
+			if(registeredPlayers.contains(sender)) {
 				ItemStack currentItem = sender.getItemInHand();
 				Material itemType = currentItem.getType();
 				if(itemType == Material.BONE) {
@@ -57,13 +57,10 @@ public final class SpleefListener implements Listener {
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
 							} else if(definingSpawn) {
 								spawningRegion[0] = sender.getTargetBlock(null, 50).getLocation();
-								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
 							} else if(definingKill) {
 								killRegion[0] = sender.getTargetBlock(null, 50).getLocation();
-								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
 							} else if(definingSpectation) {
 								spectatingRoomRegion[0] = sender.getTargetBlock(null, 50).getLocation();
-								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
 							}
 						}
 					} else if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
@@ -76,13 +73,10 @@ public final class SpleefListener implements Listener {
 								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingSpawn) {
 								spawningRegion[1] = sender.getTargetBlock(null, 50).getLocation();
-								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingKill) {
 								killRegion[1] = sender.getTargetBlock(null, 50).getLocation();
-								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							} else if(definingSpectation) {
 								spectatingRoomRegion[1] = sender.getTargetBlock(null, 50).getLocation();
-								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
 							}
 						}
 					}
@@ -102,12 +96,7 @@ public final class SpleefListener implements Listener {
 					startInfo.put(mover.getName(), new Boolean(utility.containedIn(spawningRegion, event.getTo())));
 					Iterator<String> names = startInfo.keySet().iterator();
 					while(names.hasNext()) {
-						if(!startInfo.get(names.next()).booleanValue()) {
-							shouldCommence = false;
-						}
-					}
-					if(shouldCommence) {
-						plugin.runRound();
+						
 					}
 				}
 			}

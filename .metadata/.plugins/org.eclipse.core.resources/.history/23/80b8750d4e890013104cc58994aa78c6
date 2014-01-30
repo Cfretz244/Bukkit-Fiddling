@@ -182,8 +182,7 @@ public class Executor {
 	public void moveSpectator(Server server, Player spectator) {
 		double y = Math.min(spectatingRoomRegion[0].getY(), spectatingRoomRegion[1].getY());
 		double x = (spectatingRoomRegion[0].getX() + spectatingRoomRegion[1].getX()) / 2;
-		double z = (spectatingRoomRegion[0].getZ() + spectatingRoomRegion[1].getZ()) / 2;
-		Location newLocale = new Location(spectatingRoomRegion[0].getWorld(), x, y, z);
+		double z = (spectatingRoomRegion[0].getX() + spectatingRoomRegion[1].getZ()) / 2;
 		String name = spectator.getName();
 		previousSpectatorLocations.put(name, spectator.getLocation());
 		spectator.teleport(newLocale);
