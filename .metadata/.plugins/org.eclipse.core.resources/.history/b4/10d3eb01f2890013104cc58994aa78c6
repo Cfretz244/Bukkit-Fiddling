@@ -29,9 +29,8 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		registeredPlayers = new HashSet<String>();
 		registeredSpectators = new HashSet<String>();
 		listenTo = new HashSet<String>();
-		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, this);
 		listener = new SpleefListener(regions, registeredPlayers, registeredSpectators, listenTo, utility, this);
-		getServer().getPluginManager().registerEvents(listener, this);
+		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, this);
 		File check = new File("plugins/spleefer.yml");
 		if(check.exists()) {
 			utility.loadArena(check, getServer());
@@ -51,6 +50,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 						listener.settingUp = true;
 						utility.giveSpleefWand(player);
 						player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the fighting room. Use \"/spleef done\" to indicate you've chosen");
+						getServer().getPluginManager().registerEvents(listener, this);
 						listener.shouldListenForBlockInteraction = true;
 						listener.definingFightingRoom = true;
 					} else {
@@ -183,7 +183,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 	
 	public void runRound() {
 		listener.waitingToCommence = false;
-		utility.broadcastToRegisteredPlayers(getServer(), ChatColor.YELLOW + "[Spleefer] The round has begun! KILL EACH OTHER!");
 	}
 	
 }

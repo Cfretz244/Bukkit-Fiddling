@@ -23,15 +23,15 @@ public final class Spleefer extends JavaPlugin implements Listener {
 	@Override
 	public void onEnable() {
 		regions = new Location[5][];
+		getServer().getPluginManager().registerEvents(listener, this);
 		for(int i = 0; i < 5; i++) {
 			regions[i] = new Location[2];
 		}
 		registeredPlayers = new HashSet<String>();
 		registeredSpectators = new HashSet<String>();
 		listenTo = new HashSet<String>();
-		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, this);
 		listener = new SpleefListener(regions, registeredPlayers, registeredSpectators, listenTo, utility, this);
-		getServer().getPluginManager().registerEvents(listener, this);
+		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, this);
 		File check = new File("plugins/spleefer.yml");
 		if(check.exists()) {
 			utility.loadArena(check, getServer());

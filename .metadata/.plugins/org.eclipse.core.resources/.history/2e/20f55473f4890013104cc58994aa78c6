@@ -95,15 +95,15 @@ public final class SpleefListener implements Listener {
 			Player player = event.getPlayer();
 			if(listenTo.contains(player.getName().toLowerCase())) {
 				if(waitingToCommence) {
-					boolean shouldWait = false;
+					boolean shouldCommence = true;
 					startInfo.put(player.getName(), new Boolean(utility.containedIn(regions[SPAWNING], event.getTo())));
 					Iterator<String> names = startInfo.keySet().iterator();
 					while(names.hasNext()) {
-						if(startInfo.get(names.next()).booleanValue()) {
-							shouldWait = true;
+						if(!startInfo.get(names.next()).booleanValue()) {
+							shouldCommence = false;
 						}
 					}
-					if(!shouldWait) {
+					if(shouldCommence) {
 						plugin.runRound();
 					}
 				}

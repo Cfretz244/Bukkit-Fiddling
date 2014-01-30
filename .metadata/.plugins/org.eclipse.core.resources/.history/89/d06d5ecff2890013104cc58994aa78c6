@@ -29,9 +29,8 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		registeredPlayers = new HashSet<String>();
 		registeredSpectators = new HashSet<String>();
 		listenTo = new HashSet<String>();
-		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, this);
 		listener = new SpleefListener(regions, registeredPlayers, registeredSpectators, listenTo, utility, this);
-		getServer().getPluginManager().registerEvents(listener, this);
+		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, this);
 		File check = new File("plugins/spleefer.yml");
 		if(check.exists()) {
 			utility.loadArena(check, getServer());
