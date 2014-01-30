@@ -18,7 +18,7 @@ import org.bukkit.inventory.ItemStack;
 
 public final class SpleefListener implements Listener {
 	
-	HashSet<String> registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost, hasWon;
+	HashSet<String> registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost;
 	HashMap<String, Boolean> startInfo;
 	Location[][] regions;
 	Spleefer plugin;
@@ -27,16 +27,13 @@ public final class SpleefListener implements Listener {
 	boolean waitingToCommence, inRound;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
-	public SpleefListener(Location[][] regions, HashSet<String> registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, HashSet<String> hasLost, HashSet<String> hasWon, Executor utility, Spleefer plugin) {
+	public SpleefListener(Location[][] regions, HashSet<String> registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, Executor utility, Spleefer plugin) {
 		startInfo = new HashMap<String, Boolean>();
 		this.regions = regions;
 		this.registeredPlayers = registeredPlayers;
 		this.registeredSpectators = registeredSpectators;
 		this.utility = utility;
 		this.listenTo = listenTo;
-		this.hasLost = hasLost;
-		this.hasWon = hasWon;
-		this.inTrouble = new HashSet<String>();
 		this.plugin = plugin;
 	}
 	
@@ -120,18 +117,10 @@ public final class SpleefListener implements Listener {
 				} else if(inRound) {
 					Location playerLoc = new Location(player.getWorld(), player.getLocation().getX(), player.getLocation().getY() - 1, player.getLocation().getZ());
 					if(utility.isBelow(regions[FLOOR], playerLoc)) {
-						if(!inTrouble.contains(player.getName().toLowerCase())) {
-							inTrouble.add(player.getName().toLowerCase());
-							utility.broadcastToRegisteredPlayers(ChatColor.GOLD + "[Spleefer] " + player.getName() + " is in trouble!");
-						} else if(!hasLost.contains(player.getName().toLowerCase()) && utility.containedIn(regions[KILL], playerLoc)) {
-							hasLost.add(player.getName().toLowerCase());
-							utility.broadcastToRegisteredPlayers(ChatColor.GOLD + "[Spleefer] " + player.getName() + " has lost the game.");
-							utility.removePlayer(player.getName().toLowerCase());
-						}
+						
 					}
 				}
 			}
 		}
 	}
-
 }

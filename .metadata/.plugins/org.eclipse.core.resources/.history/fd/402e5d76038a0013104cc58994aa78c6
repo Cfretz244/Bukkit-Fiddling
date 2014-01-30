@@ -126,7 +126,6 @@ public final class SpleefListener implements Listener {
 						} else if(!hasLost.contains(player.getName().toLowerCase()) && utility.containedIn(regions[KILL], playerLoc)) {
 							hasLost.add(player.getName().toLowerCase());
 							utility.broadcastToRegisteredPlayers(ChatColor.GOLD + "[Spleefer] " + player.getName() + " has lost the game.");
-							utility.removePlayer(player.getName().toLowerCase());
 						}
 					}
 				}

@@ -12,6 +12,7 @@ import java.util.Iterator;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -38,7 +39,7 @@ public class Executor {
 	public void broadcastToRegisteredPlayers(String message) {
 		Iterator<String> players = listenTo.iterator();
 		while(players.hasNext()) {
-			Player player = plugin.acquireServer().getPlayer(players.next());
+			Player player = server.getPlayer(players.next());
 			player.sendMessage(message);
 		}
 	}
@@ -168,9 +169,9 @@ public class Executor {
 		return mayBegin;
 	}
 	
-	public boolean validatePlayerNames(Player sender, String[] args) {
+	public boolean validatePlayerNames(Player sender, String[] args, Server server) {
 		for(int i = 1; i < args.length; i++) {
-			if(plugin.acquireServer().getPlayer(args[i]) == null) {
+			if(server.getPlayer(args[i]) == null) {
 				sender.sendMessage("Sorry, player " + args[i] + " does not appear to exist. Perhaps they're not online?");
 				return false;
 			}
@@ -178,7 +179,7 @@ public class Executor {
 		return true;
 	}
 	
-	public void movePlayersToSpawn() {
+	public void movePlayersToSpawn(Server server) {
 		double y = Math.min(regions[SPAWNING][0].getY(), regions[SPAWNING][1].getY()) + 1;
 		double x = (regions[SPAWNING][0].getX() + regions[SPAWNING][1].getX()) / 2;
 		double z = (regions[SPAWNING][0].getZ() + regions[SPAWNING][1].getZ()) / 2;
@@ -187,14 +188,14 @@ public class Executor {
 		previousPlayerLocations = new HashMap<String, Location>();
 		while(players.hasNext()) {
 			String name = players.next();
-			Player teleporter = plugin.acquireServer().getPlayer(name);
+			Player teleporter = server.getPlayer(name);
 			previousPlayerLocations.put(name, teleporter.getLocation());
 			listener.startInfo.put(name.toLowerCase(), new Boolean(true));
 			teleporter.teleport(newLocale);
 		}
 	}
 	
-	public void moveSpectator(Player spectator) {
+	public void moveSpectator(Server server, Player spectator) {
 		double y = Math.min(regions[SPECTATING][0].getY(), regions[SPECTATING][1].getY());
 		double x = (regions[SPECTATING][0].getX() + regions[SPECTATING][1].getX()) / 2;
 		double z = (regions[SPECTATING][0].getZ() + regions[SPECTATING][1].getZ()) / 2;
@@ -204,17 +205,15 @@ public class Executor {
 		spectator.teleport(newLocale);
 	}
 	
-	public void removePlayer(String name) {
+	public void removePlayer(Server server, String name) {
 		if(registeredPlayers.contains(name)) {
 			registeredPlayers.remove(name);
-			Player player = plugin.acquireServer().getPlayer(name);
+			Player player = server.getPlayer(name);
 			player.teleport(previousPlayerLocations.get(name));
-			player.setFlySpeed(0);
-			player.setWalkSpeed(0);
 			previousPlayerLocations.remove(name);
 		} else {
 			registeredSpectators.remove(name);
-			Player spectator = plugin.acquireServer().getPlayer(name);
+			Player spectator = server.getPlayer(name);
 			spectator.teleport(previousSpectatorLocations.get(name));
 			previousSpectatorLocations.remove(name);
 		}
@@ -246,14 +245,14 @@ public class Executor {
 		}
 	}
 	
-	public void loadArena(File arenaInfo) {
+	public void loadArena(File arenaInfo, Server server) {
 		String arenaString;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(arenaInfo));
 			arenaString = br.readLine();
 			br.close();
 		} catch(Exception e) {
-			plugin.acquireServer().getLogger().info("Arena loading failed.");
+			server.getLogger().info("Arena loading failed.");
 			return;
 		}
 		String[] specifics = arenaString.split("\\|");
@@ -264,7 +263,7 @@ public class Executor {
 				double z = Double.parseDouble(specifics[index--]);
 				double y = Double.parseDouble(specifics[index--]);
 				double x = Double.parseDouble(specifics[index--]);
-				Location locale = new Location(plugin.acquireServer().getWorld(world), x, y, z);
+				Location locale = new Location(server.getWorld(world), x, y, z);
 				regions[i][k] = locale;
 			}
 		}

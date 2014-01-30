@@ -38,7 +38,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(listener, this);
 		File check = new File("plugins/spleefer.yml");
 		if(check.exists()) {
-			utility.loadArena(check);
+			utility.loadArena(check, getServer());
 		}
 	}
 	

@@ -38,7 +38,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		getServer().getPluginManager().registerEvents(listener, this);
 		File check = new File("plugins/spleefer.yml");
 		if(check.exists()) {
-			utility.loadArena(check);
+			utility.loadArena(check, getServer());
 		}
 	}
 	
@@ -151,7 +151,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 					if(inRound) {
 						registeredSpectators.add(name);
 						listenTo.add(name);
-						utility.moveSpectator(player);
+						utility.moveSpectator(getServer(), player);
 						player.sendMessage(ChatColor.GREEN + "[Spleefer] Enjoy the show!");
 					} else {
 						player.sendMessage(ChatColor.RED + "[Spleefer] Sorry, there has to be a round running before you can spectate.");
@@ -159,7 +159,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 				} else if(args[0].equals("leave")) {
 					if(inRound) {
 						if(registeredPlayers.contains(name) || registeredSpectators.contains(name)) {
-							utility.removePlayer(name);
+							utility.removePlayer(getServer(), name);
 						} else {
 							player.sendMessage(ChatColor.RED + "[Spleefer] You can't leave as you aren't either playing or spectating.");
 						}

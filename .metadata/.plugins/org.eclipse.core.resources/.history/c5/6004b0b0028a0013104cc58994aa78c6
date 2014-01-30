@@ -12,6 +12,7 @@ import java.util.Iterator;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Server;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -209,8 +210,6 @@ public class Executor {
 			registeredPlayers.remove(name);
 			Player player = plugin.acquireServer().getPlayer(name);
 			player.teleport(previousPlayerLocations.get(name));
-			player.setFlySpeed(0);
-			player.setWalkSpeed(0);
 			previousPlayerLocations.remove(name);
 		} else {
 			registeredSpectators.remove(name);
@@ -264,7 +263,7 @@ public class Executor {
 				double z = Double.parseDouble(specifics[index--]);
 				double y = Double.parseDouble(specifics[index--]);
 				double x = Double.parseDouble(specifics[index--]);
-				Location locale = new Location(plugin.acquireServer().getWorld(world), x, y, z);
+				Location locale = new Location(server.getWorld(world), x, y, z);
 				regions[i][k] = locale;
 			}
 		}
