@@ -208,6 +208,8 @@ public class Executor {
 		if(registeredPlayers.contains(name)) {
 			registeredPlayers.remove(name);
 			Player player = plugin.acquireServer().getPlayer(name);
+			player.setFlySpeed(0);
+			player.setWalkSpeed(0);
 			player.setFallDistance(0);
 			player.teleport(previousPlayerLocations.get(name));
 			previousPlayerLocations.remove(name);
