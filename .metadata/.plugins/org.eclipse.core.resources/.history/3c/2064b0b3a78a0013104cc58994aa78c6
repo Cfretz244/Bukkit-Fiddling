@@ -14,7 +14,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Spleefer extends JavaPlugin implements Listener {
 	
-	HashSet<String> registeredPlayers, registeredSpectators, listenTo, hasLost;
+	HashSet<String> registeredPlayers, registeredSpectators, listenTo, hasLost, hasWon;
 	Location[][] regions;
 	SpleefListener listener;
 	Executor utility;
@@ -31,8 +31,9 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		registeredSpectators = new HashSet<String>();
 		listenTo = new HashSet<String>();
 		hasLost = new HashSet<String>();
-		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, hasLost, this);
-		listener = new SpleefListener(regions, registeredPlayers, registeredSpectators, listenTo, hasLost, utility, this);
+		hasWon = new HashSet<String>();
+		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, hasLost, hasWon, this);
+		listener = new SpleefListener(regions, registeredPlayers, registeredSpectators, listenTo, hasLost, hasWon, utility, this);
 		utility.listener = listener;
 		getServer().getPluginManager().registerEvents(listener, this);
 		File check = new File("plugins/spleefer.yml");
@@ -150,7 +151,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 					if(inRound) {
 						registeredSpectators.add(name);
 						listenTo.add(name);
-						utility.moveSpectator(player.getName().toLowerCase());
+						utility.moveSpectator(player);
 						player.sendMessage(ChatColor.GREEN + "[Spleefer] Enjoy the show!");
 					} else {
 						player.sendMessage(ChatColor.RED + "[Spleefer] Sorry, there has to be a round running before you can spectate.");
@@ -192,7 +193,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 	}
 	
 	public void endRound(String winner) {
-		utility.broadcastToRegisteredPlayers("[Spleefer] " + winner + " is the winner! The round will now end.");
+		
 	}
 	
 	public Server acquireServer() {

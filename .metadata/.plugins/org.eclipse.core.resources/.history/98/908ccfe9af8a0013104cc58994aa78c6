@@ -150,7 +150,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 					if(inRound) {
 						registeredSpectators.add(name);
 						listenTo.add(name);
-						utility.moveSpectator(player.getName().toLowerCase());
+						utility.moveSpectator(player);
 						player.sendMessage(ChatColor.GREEN + "[Spleefer] Enjoy the show!");
 					} else {
 						player.sendMessage(ChatColor.RED + "[Spleefer] Sorry, there has to be a round running before you can spectate.");

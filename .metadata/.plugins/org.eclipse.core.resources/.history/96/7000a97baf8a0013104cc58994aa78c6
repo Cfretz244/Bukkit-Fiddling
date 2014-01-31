@@ -189,20 +189,17 @@ public class Executor {
 		while(players.hasNext()) {
 			String name = players.next();
 			Player teleporter = plugin.acquireServer().getPlayer(name);
-			if(!previousLocations.containsKey(name)) {
-				previousLocations.put(name, teleporter.getLocation());
-			}
+			previousLocations.put(name, teleporter.getLocation());
 			listener.startInfo.put(name.toLowerCase(), new Boolean(true));
 			teleporter.teleport(newLocale);
 		}
 	}
 	
-	public void moveSpectator(String name) {
-		double y = Math.min(regions[SPECTATING][0].getY(), regions[SPECTATING][1].getY()) + 1;
+	public void moveSpectator(Player spectator) {
+		double y = Math.min(regions[SPECTATING][0].getY(), regions[SPECTATING][1].getY());
 		double x = (regions[SPECTATING][0].getX() + regions[SPECTATING][1].getX()) / 2;
 		double z = (regions[SPECTATING][0].getZ() + regions[SPECTATING][1].getZ()) / 2;
 		Location newLocale = new Location(regions[SPECTATING][0].getWorld(), x, y, z);
-		Player spectator = plugin.acquireServer().getPlayer(name);
 		if(previousLocations == null) {
 			previousLocations = new HashMap<String, Location>();
 		}
@@ -213,10 +210,7 @@ public class Executor {
 	}
 	
 	public void makePlayerSpectator(String name) {
-		registeredPlayers.remove(name);
-		registeredSpectators.add(name);
-		plugin.acquireServer().getPlayer(name).setFallDistance(0);
-		moveSpectator(name);
+		
 	}
 	
 	public void removePlayer(String name) {

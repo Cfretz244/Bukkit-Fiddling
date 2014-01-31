@@ -198,7 +198,7 @@ public class Executor {
 	}
 	
 	public void moveSpectator(String name) {
-		double y = Math.min(regions[SPECTATING][0].getY(), regions[SPECTATING][1].getY()) + 1;
+		double y = Math.min(regions[SPECTATING][0].getY(), regions[SPECTATING][1].getY());
 		double x = (regions[SPECTATING][0].getX() + regions[SPECTATING][1].getX()) / 2;
 		double z = (regions[SPECTATING][0].getZ() + regions[SPECTATING][1].getZ()) / 2;
 		Location newLocale = new Location(regions[SPECTATING][0].getWorld(), x, y, z);
@@ -215,7 +215,6 @@ public class Executor {
 	public void makePlayerSpectator(String name) {
 		registeredPlayers.remove(name);
 		registeredSpectators.add(name);
-		plugin.acquireServer().getPlayer(name).setFallDistance(0);
 		moveSpectator(name);
 	}
 	

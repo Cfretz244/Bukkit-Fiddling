@@ -18,19 +18,20 @@ import org.bukkit.inventory.ItemStack;
 
 public class Executor {
 	
-	HashSet<String> registeredPlayers, registeredSpectators, listenTo, hasLost;
-	HashMap<String, Location> previousLocations;
+	HashSet<String> registeredPlayers, registeredSpectators, listenTo, hasLost, hasWon;
+	HashMap<String, Location> previousPlayerLocations, previousSpectatorLocations;
 	Location[][] regions;
 	Spleefer plugin;
 	SpleefListener listener;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
-	public Executor(Location[][] regions, HashSet<String>registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, HashSet<String> hasLost, Spleefer plugin) {
+	public Executor(Location[][] regions, HashSet<String>registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, HashSet<String> hasLost, HashSet<String> hasWon, Spleefer plugin) {
 		this.regions = regions;
 		this.registeredPlayers = registeredPlayers;
 		this.registeredSpectators = registeredSpectators;
 		this.listenTo = listenTo;
 		this.hasLost = hasLost;
+		this.hasWon = hasWon;
 		this.plugin = plugin;
 	}
 	
@@ -183,40 +184,24 @@ public class Executor {
 		double z = (regions[SPAWNING][0].getZ() + regions[SPAWNING][1].getZ()) / 2;
 		Location newLocale = new Location(regions[SPAWNING][0].getWorld(), x, y, z);
 		Iterator<String> players = registeredPlayers.iterator();
-		if(previousLocations == null) {
-			previousLocations = new HashMap<String, Location>();
-		}
+		previousPlayerLocations = new HashMap<String, Location>();
 		while(players.hasNext()) {
 			String name = players.next();
 			Player teleporter = plugin.acquireServer().getPlayer(name);
-			if(!previousLocations.containsKey(name)) {
-				previousLocations.put(name, teleporter.getLocation());
-			}
+			previousPlayerLocations.put(name, teleporter.getLocation());
 			listener.startInfo.put(name.toLowerCase(), new Boolean(true));
 			teleporter.teleport(newLocale);
 		}
 	}
 	
-	public void moveSpectator(String name) {
-		double y = Math.min(regions[SPECTATING][0].getY(), regions[SPECTATING][1].getY()) + 1;
+	public void moveSpectator(Player spectator) {
+		double y = Math.min(regions[SPECTATING][0].getY(), regions[SPECTATING][1].getY());
 		double x = (regions[SPECTATING][0].getX() + regions[SPECTATING][1].getX()) / 2;
 		double z = (regions[SPECTATING][0].getZ() + regions[SPECTATING][1].getZ()) / 2;
 		Location newLocale = new Location(regions[SPECTATING][0].getWorld(), x, y, z);
-		Player spectator = plugin.acquireServer().getPlayer(name);
-		if(previousLocations == null) {
-			previousLocations = new HashMap<String, Location>();
-		}
-		if(!previousLocations.containsKey(spectator.getName())) {
-			previousLocations.put(spectator.getName(), spectator.getLocation());
-		}
+		String name = spectator.getName();
+		previousSpectatorLocations.put(name, spectator.getLocation());
 		spectator.teleport(newLocale);
-	}
-	
-	public void makePlayerSpectator(String name) {
-		registeredPlayers.remove(name);
-		registeredSpectators.add(name);
-		plugin.acquireServer().getPlayer(name).setFallDistance(0);
-		moveSpectator(name);
 	}
 	
 	public void removePlayer(String name) {
@@ -224,30 +209,16 @@ public class Executor {
 			registeredPlayers.remove(name);
 			Player player = plugin.acquireServer().getPlayer(name);
 			player.setFallDistance(0);
-			player.teleport(previousLocations.get(name));
-			previousLocations.remove(name);
+			player.teleport(previousPlayerLocations.get(name));
+			previousPlayerLocations.remove(name);
 		} else {
 			registeredSpectators.remove(name);
 			Player spectator = plugin.acquireServer().getPlayer(name);
-			spectator.teleport(previousLocations.get(name));
-			previousLocations.remove(name);
+			spectator.teleport(previousSpectatorLocations.get(name));
+			previousSpectatorLocations.remove(name);
 		}
 		if(listenTo.contains(name)) {
 			listenTo.remove(name);
-		}
-	}
-	
-	public void validateGameState() {
-		if(hasLost.size() == registeredPlayers.size() - 1) {
-			String winner = new String();
-			Iterator<String> players = registeredPlayers.iterator();
-			while(players.hasNext()) {
-				String name = players.next();
-				if(!hasLost.contains(name)) {
-					winner = name;
-				}
-			}
-			plugin.endRound(winner);
 		}
 	}
 	

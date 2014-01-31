@@ -215,7 +215,6 @@ public class Executor {
 	public void makePlayerSpectator(String name) {
 		registeredPlayers.remove(name);
 		registeredSpectators.add(name);
-		plugin.acquireServer().getPlayer(name).setFallDistance(0);
 		moveSpectator(name);
 	}
 	
