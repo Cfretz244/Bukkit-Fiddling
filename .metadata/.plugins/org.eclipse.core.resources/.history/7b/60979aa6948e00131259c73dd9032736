@@ -1,0 +1,145 @@
+package com.gmail.cfretz244;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+
+public final class SpleefListener implements Listener {
+	
+	HashSet<String> registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost;
+	HashMap<String, Boolean> startInfo;
+	Location[][] regions;
+	Spleefer plugin;
+	Executor utility;
+	String spleefTag;
+	boolean settingUp, definingFightingRoom, definingFloor, definingSpawn, definingKill, definingSpectation, finishedDefinition, shouldListenForMovement, shouldListenForBlockInteraction;
+	boolean waitingToCommence, inRound;
+	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
+	
+	public SpleefListener(Location[][] regions, HashSet<String> registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, HashSet<String> hasLost, Executor utility, Spleefer plugin) {
+		spleefTag = "[Spleefer] ";
+		startInfo = new HashMap<String, Boolean>();
+		this.regions = regions;
+		this.registeredPlayers = registeredPlayers;
+		this.registeredSpectators = registeredSpectators;
+		this.utility = utility;
+		this.listenTo = listenTo;
+		this.hasLost = hasLost;
+		this.inTrouble = new HashSet<String>();
+		this.plugin = plugin;
+	}
+	
+	@EventHandler
+	public void onPlayerInteractBlock(PlayerInteractEvent event) {
+		if(shouldListenForBlockInteraction) {
+			Player sender = event.getPlayer();
+			if(listenTo.contains(sender.getName().toLowerCase())) {
+				ItemStack currentItem = sender.getItemInHand();
+				Material itemType = currentItem.getType();
+				if(event.getAction() == Action.LEFT_CLICK_BLOCK) {
+					if(settingUp) {
+						if(itemType == Material.BONE) {
+							if(definingFightingRoom) {
+								regions[FIGHTING][0] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
+							} else if(definingFloor) {
+								regions[FLOOR][0] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
+							} else if(definingSpawn) {
+								regions[SPAWNING][0] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
+							} else if(definingKill) {
+								regions[KILL][0] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
+							} else if(definingSpectation) {
+								regions[SPECTATING][0] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "First Position Set");
+							}
+						}
+					} else if(inRound) {
+						if(registeredPlayers.contains(sender.getName().toLowerCase())) {
+							Location blockLocation = event.getClickedBlock().getLocation();
+							if(utility.containedIn(regions[FLOOR], blockLocation)) {
+								Block clickedBlock = event.getClickedBlock();
+								clickedBlock.breakNaturally();
+							}
+						}
+					}
+				} else if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+					if(settingUp) {
+						if(itemType == Material.BONE) {
+							if(definingFightingRoom) {
+								regions[FIGHTING][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							} else if(definingFloor) {
+								regions[FLOOR][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							} else if(definingSpawn) {
+								regions[SPAWNING][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							} else if(definingKill) {
+								regions[KILL][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							} else if(definingSpectation) {
+								regions[SPECTATING][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							}
+						}
+						
+					}
+				}
+			}
+		}
+	}
+	
+	@EventHandler
+	public void onPlayerMove(PlayerMoveEvent event) {
+		if(shouldListenForMovement) {
+			Player player = event.getPlayer();
+			if(listenTo.contains(player.getName().toLowerCase())) {
+				if(registeredPlayers.contains(player.getName().toLowerCase())) {
+					if(waitingToCommence) {
+						boolean shouldWait = false;
+						startInfo.put(player.getName().toLowerCase(), new Boolean(utility.containedIn(regions[SPAWNING], event.getTo())));
+						Iterator<String> names = startInfo.keySet().iterator();
+						while(names.hasNext()) {
+							if(startInfo.get(names.next()).booleanValue()) {
+								shouldWait = true;
+							}
+						}
+						if(!shouldWait) {
+							plugin.runRound();
+						}
+					} else if(inRound) {
+						Location playerLoc = new Location(player.getWorld(), player.getLocation().getX(), player.getLocation().getY() - 1, player.getLocation().getZ());
+						if(utility.isBelow(regions[FLOOR], playerLoc)) {
+							if(!inTrouble.contains(player.getName().toLowerCase())) {
+								inTrouble.add(player.getName().toLowerCase());
+								utility.broadcastToRegisteredPlayers(ChatColor.GOLD + "[Spleefer] " + player.getName() + " is in trouble!");
+							} else if(!hasLost.contains(player.getName().toLowerCase()) && utility.containedIn(regions[KILL], playerLoc)) {
+								inTrouble.remove(player.getName().toLowerCase());
+								hasLost.add(player.getName().toLowerCase());
+								utility.broadcastToRegisteredPlayers(ChatColor.GOLD + "[Spleefer] " + player.getName() + " has lost the game.");
+								utility.makePlayerSpectator(player.getName().toLowerCase());
+								utility.validateGameState();
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+}

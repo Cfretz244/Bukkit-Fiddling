@@ -18,18 +18,19 @@ import org.bukkit.inventory.ItemStack;
 
 public class Executor {
 	
-	HashSet<String> registeredPlayers, registeredSpectators, listenTo, hasLost;
+	HashSet<String> registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost;
 	HashMap<String, Location> previousLocations;
 	Location[][] regions;
 	Spleefer plugin;
 	SpleefListener listener;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
-	public Executor(Location[][] regions, HashSet<String>registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, HashSet<String> hasLost, Spleefer plugin) {
+	public Executor(Location[][] regions, HashSet<String>registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, HashSet<String> inTrouble, HashSet<String> hasLost, Spleefer plugin) {
 		this.regions = regions;
 		this.registeredPlayers = registeredPlayers;
 		this.registeredSpectators = registeredSpectators;
 		this.listenTo = listenTo;
+		this.inTrouble = inTrouble;
 		this.hasLost = hasLost;
 		this.plugin = plugin;
 	}
@@ -178,7 +179,7 @@ public class Executor {
 	}
 	
 	public void movePlayersToSpawn() {
-		double y = Math.min(regions[SPAWNING][0].getY(), regions[SPAWNING][1].getY()) + 1;
+		double y = Math.min(regions[SPAWNING][0].getY(), regions[SPAWNING][1].getY()) + 1.2;
 		double x = (regions[SPAWNING][0].getX() + regions[SPAWNING][1].getX()) / 2;
 		double z = (regions[SPAWNING][0].getZ() + regions[SPAWNING][1].getZ()) / 2;
 		Location newLocale = new Location(regions[SPAWNING][0].getWorld(), x, y, z);
@@ -232,13 +233,10 @@ public class Executor {
 			spectator.teleport(previousLocations.get(name));
 			previousLocations.remove(name);
 		}
-		if(listenTo.contains(name)) {
-			listenTo.remove(name);
-		}
 	}
 	
 	public void validateGameState() {
-		if(hasLost.size() == registeredPlayers.size() - 1) {
+		if(registeredPlayers.size() == 1) {
 			String winner = new String();
 			Iterator<String> players = registeredPlayers.iterator();
 			while(players.hasNext()) {
@@ -251,9 +249,32 @@ public class Executor {
 		}
 	}
 	
+	public void cleanup() {
+		Iterator<String> players = listenTo.iterator();
+		while(players.hasNext()) {
+			String name = players.next();
+			if(registeredPlayers.contains(name)) {
+				registeredPlayers.remove(name);
+			}
+			if(registeredSpectators.contains(name)) {
+				registeredSpectators.remove(name);
+			}
+			if(hasLost.contains(name)) {
+				hasLost.remove(name);
+			}
+			if(inTrouble.contains(name)) {
+				inTrouble.remove(name);
+			}
+			removePlayer(name);
+		}
+	}
+	
 	public boolean saveArena(Player player, String world) {
 		try {
 			File arenas = new File("plugins/spleefer.yml");
+			if(arenas.exists()) {
+				arenas.delete();
+			}
 			arenas.createNewFile();
 			FileWriter writer = new FileWriter(arenas, true);
 			PrintWriter pw = new PrintWriter(writer);

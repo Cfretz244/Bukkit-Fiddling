@@ -23,11 +23,13 @@ public final class SpleefListener implements Listener {
 	Location[][] regions;
 	Spleefer plugin;
 	Executor utility;
+	String spleefTag;
 	boolean settingUp, definingFightingRoom, definingFloor, definingSpawn, definingKill, definingSpectation, finishedDefinition, shouldListenForMovement, shouldListenForBlockInteraction;
 	boolean waitingToCommence, inRound;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
-	public SpleefListener(Location[][] regions, HashSet<String> registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, HashSet<String> hasLost, Executor utility, Spleefer plugin) {
+	public SpleefListener(Location[][] regions, HashSet<String> registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, HashSet<String> inTrouble, HashSet<String> hasLost, Executor utility, Spleefer plugin) {
+		spleefTag = "[Spleefer] ";
 		startInfo = new HashMap<String, Boolean>();
 		this.regions = regions;
 		this.registeredPlayers = registeredPlayers;
@@ -35,7 +37,7 @@ public final class SpleefListener implements Listener {
 		this.utility = utility;
 		this.listenTo = listenTo;
 		this.hasLost = hasLost;
-		this.inTrouble = new HashSet<String>();
+		this.inTrouble = inTrouble;
 		this.plugin = plugin;
 	}
 	
@@ -71,28 +73,32 @@ public final class SpleefListener implements Listener {
 							Location blockLocation = event.getClickedBlock().getLocation();
 							if(utility.containedIn(regions[FLOOR], blockLocation)) {
 								Block clickedBlock = event.getClickedBlock();
+								utility.broadcastToRegisteredPlayers("Breaking block");
 								clickedBlock.breakNaturally();
 							}
 						}
 					}
 				} else if(event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 					if(settingUp) {
-						if(definingFightingRoom) {
-							regions[FIGHTING][1] = sender.getTargetBlock(null, 50).getLocation();
-							sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
-						} else if(definingFloor) {
-							regions[FLOOR][1] = sender.getTargetBlock(null, 50).getLocation();
-							sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
-						} else if(definingSpawn) {
-							regions[SPAWNING][1] = sender.getTargetBlock(null, 50).getLocation();
-							sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
-						} else if(definingKill) {
-							regions[KILL][1] = sender.getTargetBlock(null, 50).getLocation();
-							sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
-						} else if(definingSpectation) {
-							regions[SPECTATING][1] = sender.getTargetBlock(null, 50).getLocation();
-							sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+						if(itemType == Material.BONE) {
+							if(definingFightingRoom) {
+								regions[FIGHTING][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							} else if(definingFloor) {
+								regions[FLOOR][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							} else if(definingSpawn) {
+								regions[SPAWNING][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							} else if(definingKill) {
+								regions[KILL][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							} else if(definingSpectation) {
+								regions[SPECTATING][1] = sender.getTargetBlock(null, 50).getLocation();
+								sender.sendMessage(ChatColor.LIGHT_PURPLE + "Second Position Set");
+							}
 						}
+						
 					}
 				}
 			}
@@ -110,7 +116,8 @@ public final class SpleefListener implements Listener {
 						startInfo.put(player.getName().toLowerCase(), new Boolean(utility.containedIn(regions[SPAWNING], event.getTo())));
 						Iterator<String> names = startInfo.keySet().iterator();
 						while(names.hasNext()) {
-							if(startInfo.get(names.next()).booleanValue()) {
+							String name = names.next();
+							if(startInfo.get(name).booleanValue()) {
 								shouldWait = true;
 							}
 						}
@@ -122,14 +129,14 @@ public final class SpleefListener implements Listener {
 						if(utility.isBelow(regions[FLOOR], playerLoc)) {
 							if(!inTrouble.contains(player.getName().toLowerCase())) {
 								inTrouble.add(player.getName().toLowerCase());
-								utility.broadcastToRegisteredPlayers(ChatColor.GOLD + "[Spleefer] " + player.getName() + " is in trouble!");
+								utility.broadcastToRegisteredPlayers(ChatColor.GOLD + spleefTag + player.getName() + " is in trouble!");
 							} else if(!hasLost.contains(player.getName().toLowerCase()) && utility.containedIn(regions[KILL], playerLoc)) {
 								inTrouble.remove(player.getName().toLowerCase());
 								hasLost.add(player.getName().toLowerCase());
-								utility.broadcastToRegisteredPlayers(ChatColor.GOLD + "[Spleefer] " + player.getName() + " has lost the game.");
+								utility.broadcastToRegisteredPlayers(ChatColor.GOLD + spleefTag + player.getName() + " has lost the game.");
 								utility.makePlayerSpectator(player.getName().toLowerCase());
 								utility.validateGameState();
-							}
+							} 
 						}
 					}
 				}

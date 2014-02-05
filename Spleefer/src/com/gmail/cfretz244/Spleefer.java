@@ -2,6 +2,7 @@ package com.gmail.cfretz244;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Iterator;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -14,15 +15,17 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Spleefer extends JavaPlugin implements Listener {
 	
-	HashSet<String> registeredPlayers, registeredSpectators, listenTo, hasLost;
+	HashSet<String> registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost;
 	Location[][] regions;
 	SpleefListener listener;
 	Executor utility;
+	String spleefTag;
 	boolean settingUp, definingFightingRoom, definingFloor, definingSpawn, definingKill, definingSpectation, finishedDefinition, inRound;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
 	@Override
 	public void onEnable() {
+		spleefTag = "[Spleefer] ";
 		regions = new Location[5][];
 		for(int i = 0; i < 5; i++) {
 			regions[i] = new Location[2];
@@ -30,9 +33,10 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		registeredPlayers = new HashSet<String>();
 		registeredSpectators = new HashSet<String>();
 		listenTo = new HashSet<String>();
+		inTrouble = new HashSet<String>();
 		hasLost = new HashSet<String>();
-		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, hasLost, this);
-		listener = new SpleefListener(regions, registeredPlayers, registeredSpectators, listenTo, hasLost, utility, this);
+		utility = new Executor(regions, registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost, this);
+		listener = new SpleefListener(regions, registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost, utility, this);
 		utility.listener = listener;
 		getServer().getPluginManager().registerEvents(listener, this);
 		File check = new File("plugins/spleefer.yml");
@@ -48,16 +52,16 @@ public final class Spleefer extends JavaPlugin implements Listener {
 			if(cmd.getName().equals("spleef")) {
 				if(args[0].equals("setup")) {
 					if(!settingUp) {
-						listenTo.add(name);
+						listenTo.add(name.toLowerCase());
 						settingUp = true;
 						definingFightingRoom = true;
 						listener.settingUp = true;
 						utility.giveSpleefWand(player);
-						player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the fighting room. Use \"/spleef done\" to indicate you've chosen");
+						player.sendMessage(ChatColor.YELLOW + spleefTag + "Please define the fighting room. Use \"/spleef done\" to indicate you've chosen");
 						listener.shouldListenForBlockInteraction = true;
 						listener.definingFightingRoom = true;
 					} else {
-						player.sendMessage(ChatColor.RED + "[Spleefer] You're already setting up the spleef arena.");
+						player.sendMessage(ChatColor.RED + spleefTag + "You're already setting up the spleef arena.");
 					}
 					
 				} else if(args[0].equals("done")) {
@@ -65,55 +69,55 @@ public final class Spleefer extends JavaPlugin implements Listener {
 						if(definingFightingRoom) {
 							definingFightingRoom = false;
 							listener.definingFightingRoom = false;
-							player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the spleef arena floor. Use\"/spleef done\" to indicate you've chosen.");
+							player.sendMessage(ChatColor.YELLOW + spleefTag + "Please define the spleef arena floor. Use\"/spleef done\" to indicate you've chosen.");
 							definingFloor = true;
 							listener.definingFloor = true;
 						} else if(definingFloor) {
 							definingFloor = false;
 							listener.definingFloor = false;
-							player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the spleef spawning region. Use \"/spleef done\" to indicate you've chosen.");
+							player.sendMessage(ChatColor.YELLOW + spleefTag + "Please define the spleef spawning region. Use \"/spleef done\" to indicate you've chosen.");
 							definingSpawn = true;
 							listener.definingSpawn = true;
 						} else if(definingSpawn) {
 							definingSpawn = false;
 							listener.definingSpawn = false;
-							player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the spleef kill region. Use \"/spleef done\" to indicate you've chosen.");
+							player.sendMessage(ChatColor.YELLOW + spleefTag + "Please define the spleef kill region. Use \"/spleef done\" to indicate you've chosen.");
 							definingKill = true;
 							listener.definingKill = true;
 						} else if(definingKill) {
 							definingKill = false;
 							listener.definingKill = false;
-							player.sendMessage(ChatColor.YELLOW + "[Spleefer] Please define the spleef spectators room. Use \"/spleef done\" to indicate you've chosen.");
+							player.sendMessage(ChatColor.YELLOW + spleefTag + "Please define the spleef spectators room. Use \"/spleef done\" to indicate you've chosen.");
 							definingSpectation = true;
 							listener.definingSpectation = true;
 						} else if(definingSpectation) {
 							definingSpectation = false;
 							listener.definingSpectation = false;
-							player.sendMessage(ChatColor.GREEN + "[Spleefer] Finished Definitions. If you're happy with your choices, use \"/spleef save\" to finalize it. Otherwise use \"/spleef discard\".");
+							player.sendMessage(ChatColor.GREEN + spleefTag + "Finished Definitions. If you're happy with your choices, use \"/spleef save\" to finalize it. Otherwise use \"/spleef discard\".");
 							finishedDefinition = true;
 							listener.finishedDefinition = true;
 							listenTo.remove(name);
 						} else {
-							player.sendMessage(ChatColor.RED + "[Spleefer] Really not sure how you got here. This message was added more for completeness than anything else. Either way, something is wrong. I guess try resetting the server?");
+							player.sendMessage(ChatColor.RED + spleefTag + "Really not sure how you got here. This message was added more for completeness than anything else. Either way, something is wrong. I guess try resetting the server?");
 						}
 					} else {
-						player.sendMessage(ChatColor.RED + "[Spleefer] But you weren't doing anything.");
+						player.sendMessage(ChatColor.RED + spleefTag + "But you weren't doing anything.");
 					}
 				} else if(args[0].equals("save")) {
 					if(settingUp) {
 						if(finishedDefinition) {
 							finishedDefinition = false;
 							if(utility.saveArena(player, regions[FIGHTING][0].getWorld().getName())) {
-								player.sendMessage(ChatColor.GREEN + "[Spleefer] Arena Saved.");
+								player.sendMessage(ChatColor.GREEN + spleefTag + "Arena Saved.");
 							} else {
 								finishedDefinition = true;
-								player.sendMessage(ChatColor.RED + "[Spleefer] Unfortunately the arena could not be saved. Feel free to try again.");
+								player.sendMessage(ChatColor.RED + spleefTag + "Unfortunately the arena could not be saved. Feel free to try again.");
 							}
 						} else {
-							player.sendMessage(ChatColor.RED + "[Spleefer] You need to define an arena before you can save.");
+							player.sendMessage(ChatColor.RED + spleefTag + "You need to define an arena before you can save.");
 						}
 					} else {
-						player.sendMessage(ChatColor.RED + "[Spleefer] There's nothing to save.");
+						player.sendMessage(ChatColor.RED + spleefTag + "There's nothing to save.");
 					}
 				} else if(args[0].equals("discard")) {
 					if(settingUp) {
@@ -125,9 +129,9 @@ public final class Spleefer extends JavaPlugin implements Listener {
 							regions[SPAWNING][i] = null;
 						}
 						settingUp = false;
-						player.sendMessage(ChatColor.GREEN + "[Spleefer] Done. Better luck next time.");
+						player.sendMessage(ChatColor.GREEN + spleefTag + "Done. Better luck next time.");
 					} else {
-						player.sendMessage(ChatColor.RED + "[Spleefer] There's nothing to discard.");
+						player.sendMessage(ChatColor.RED + spleefTag + "There's nothing to discard.");
 					}
 				} else if(args[0].equals("begin")) {
 					if(utility.validateSpleefState()) {
@@ -141,29 +145,29 @@ public final class Spleefer extends JavaPlugin implements Listener {
 								beginRound();
 							}
 						} else {
-							player.sendMessage(ChatColor.RED + "[Spleefer] Sorry, you need to list at least 2 players to begin a round.");
+							player.sendMessage(ChatColor.RED + spleefTag + "Sorry, you need to list at least 2 players to begin a round.");
 						}
 					} else {
-						player.sendMessage(ChatColor.RED + "[Spleefer] Sorry, you haven't defined the spleef arena yet.");
+						player.sendMessage(ChatColor.RED + spleefTag + "Sorry, you haven't defined the spleef arena yet.");
 					}
 				} else if(args[0].equals("spectate")) {
 					if(inRound) {
 						registeredSpectators.add(name);
 						listenTo.add(name);
 						utility.moveSpectator(player.getName().toLowerCase());
-						player.sendMessage(ChatColor.GREEN + "[Spleefer] Enjoy the show!");
+						player.sendMessage(ChatColor.GREEN + spleefTag + "Enjoy the show!");
 					} else {
-						player.sendMessage(ChatColor.RED + "[Spleefer] Sorry, there has to be a round running before you can spectate.");
+						player.sendMessage(ChatColor.RED + spleefTag + "Sorry, there has to be a round running before you can spectate.");
 					}
 				} else if(args[0].equals("leave")) {
 					if(inRound) {
 						if(registeredPlayers.contains(name) || registeredSpectators.contains(name)) {
 							utility.removePlayer(name);
 						} else {
-							player.sendMessage(ChatColor.RED + "[Spleefer] You can't leave as you aren't either playing or spectating.");
+							player.sendMessage(ChatColor.RED + spleefTag + "You can't leave as you aren't either playing or spectating.");
 						}
 					} else {
-						player.sendMessage(ChatColor.RED + "[Spleefer] There isn't a round running currently.");
+						player.sendMessage(ChatColor.RED + spleefTag + "There isn't a round running currently.");
 					}
 				} else if(args[0].equals("clear")) {
 					listenTo.clear();
@@ -172,14 +176,14 @@ public final class Spleefer extends JavaPlugin implements Listener {
 				}
 			}
 		} else {
-			sender.sendMessage(ChatColor.RED + "[Spleefer] Sender must be a player");
+			sender.sendMessage(ChatColor.RED + spleefTag + "Sender must be a player");
 		}
 		return false;
 	}
 	
 	public void beginRound() {
 		utility.movePlayersToSpawn();
-		utility.broadcastToRegisteredPlayers(ChatColor.YELLOW + "[Spleefer] The round will commence once all participants have left the spawn area.");
+		utility.broadcastToRegisteredPlayers(ChatColor.YELLOW + spleefTag + "The round will commence once all participants have left the spawn area.");
 		listener.shouldListenForMovement = true;
 		listener.waitingToCommence = true;
 	}
@@ -188,11 +192,13 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		listener.waitingToCommence = false;
 		listener.inRound = true;
 		listener.shouldListenForBlockInteraction = true;
-		utility.broadcastToRegisteredPlayers(ChatColor.YELLOW + "[Spleefer] The round has begun! KILL EACH OTHER!");
+		utility.broadcastToRegisteredPlayers(ChatColor.YELLOW + spleefTag + "The round has begun! KILL EACH OTHER!");
 	}
 	
 	public void endRound(String winner) {
-		utility.broadcastToRegisteredPlayers("[Spleefer] " + winner + " is the winner! The round will now end.");
+		utility.broadcastToRegisteredPlayers(ChatColor.GOLD + spleefTag + winner + " is the winner! The round will now end.");
+		utility.cleanup();
+		
 	}
 	
 	public Server acquireServer() {
