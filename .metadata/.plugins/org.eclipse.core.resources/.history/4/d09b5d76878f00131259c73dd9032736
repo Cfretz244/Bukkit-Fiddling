@@ -131,15 +131,11 @@ public final class SpleefListener implements Listener {
 								inTrouble.add(player.getName().toLowerCase());
 								utility.broadcastToRegisteredPlayers(ChatColor.GOLD + spleefTag + player.getName() + " is in trouble!");
 							} else if(!hasLost.contains(player.getName().toLowerCase()) && utility.containedIn(regions[KILL], playerLoc)) {
-								try {
-									inTrouble.remove(player.getName().toLowerCase());
-									hasLost.add(player.getName().toLowerCase());
-									utility.broadcastToRegisteredPlayers(ChatColor.GOLD + spleefTag + player.getName() + " has lost the game.");
-									utility.makePlayerSpectator(player.getName().toLowerCase());
-									utility.validateGameState();
-								} catch (Exception e) {
-									plugin.acquireServer().getLogger().info(e.toString());
-								}
+								inTrouble.remove(player.getName().toLowerCase());
+								hasLost.add(player.getName().toLowerCase());
+								utility.broadcastToRegisteredPlayers(ChatColor.GOLD + spleefTag + player.getName() + " has lost the game.");
+								utility.makePlayerSpectator(player.getName().toLowerCase());
+								utility.validateGameState();
 							} 
 						}
 					}

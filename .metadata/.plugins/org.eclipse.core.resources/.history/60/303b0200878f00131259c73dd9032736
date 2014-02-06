@@ -78,7 +78,7 @@ public class Executor {
 			}
 		} else if(X2 < X1 && Z1 > Z2) {
 			//case 2
-			if(pX >= X2 && pX <= X1 && pZ >= Z2 && pZ <= Z1) {
+			if(pX >= X2 && pX <= X1 && pZ >= X2 && pZ <= Z1) {
 				return true;
 			} else {
 				return false;

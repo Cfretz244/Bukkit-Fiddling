@@ -63,7 +63,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 						definingFightingRoom = true;
 						listener.settingUp = true;
 						utility.giveSpleefWand(player);
-						utility.clearRegions();
 						player.sendMessage(ChatColor.YELLOW + spleefTag + "Please define the fighting room. Use \"/spleef done\" to indicate you've chosen");
 						listener.shouldListenForBlockInteraction = true;
 						listener.definingFightingRoom = true;
@@ -149,7 +148,13 @@ public final class Spleefer extends JavaPlugin implements Listener {
 					}
 				} else if(args[0].equals("discard")) {
 					if(finishedDefinition) {
-						utility.clearRegions();
+						for(int i = 0; i < 2; i++) {
+							regions[KILL][i] = null;
+							regions[FLOOR][i] = null;
+							regions[FIGHTING][i] = null;
+							regions[SPECTATING][i] = null;
+							regions[SPAWNING][i] = null;
+						}
 						player.sendMessage(ChatColor.GREEN + spleefTag + "Done. Better luck next time.");
 					} else {
 						player.sendMessage(ChatColor.RED + spleefTag + "There's nothing to discard yet.");
@@ -159,9 +164,8 @@ public final class Spleefer extends JavaPlugin implements Listener {
 						if(args.length > 2) {
 							if(utility.validatePlayerNames(player, args)) {
 								for(int i = 1; i < args.length; i++) {
-									Player specifiedPlayer = getServer().getPlayer(args[i]);
-									registeredPlayers.add(specifiedPlayer.getName().toLowerCase());
-									listenTo.add(specifiedPlayer.getName().toLowerCase());
+									registeredPlayers.add(args[i]);
+									listenTo.add(args[i]);
 								}
 								inRound = true;
 								beginRound();
@@ -220,9 +224,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 	public void endRound(String winner) {
 		utility.broadcastToRegisteredPlayers(ChatColor.GOLD + spleefTag + winner + " is the winner! The round will now end.");
 		utility.cleanup();
-		listener.inRound = false;
-		listener.shouldListenForBlockInteraction = false;
-		listener.shouldListenForMovement = false;
 		utility.restoreFloor();
 	}
 	

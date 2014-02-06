@@ -159,9 +159,8 @@ public final class Spleefer extends JavaPlugin implements Listener {
 						if(args.length > 2) {
 							if(utility.validatePlayerNames(player, args)) {
 								for(int i = 1; i < args.length; i++) {
-									Player specifiedPlayer = getServer().getPlayer(args[i]);
-									registeredPlayers.add(specifiedPlayer.getName().toLowerCase());
-									listenTo.add(specifiedPlayer.getName().toLowerCase());
+									registeredPlayers.add(args[i]);
+									listenTo.add(args[i]);
 								}
 								inRound = true;
 								beginRound();
@@ -222,7 +221,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		utility.cleanup();
 		listener.inRound = false;
 		listener.shouldListenForBlockInteraction = false;
-		listener.shouldListenForMovement = false;
 		utility.restoreFloor();
 	}
 	

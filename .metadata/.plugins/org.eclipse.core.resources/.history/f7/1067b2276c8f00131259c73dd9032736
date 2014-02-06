@@ -78,7 +78,7 @@ public class Executor {
 			}
 		} else if(X2 < X1 && Z1 > Z2) {
 			//case 2
-			if(pX >= X2 && pX <= X1 && pZ >= Z2 && pZ <= Z1) {
+			if(pX >= X2 && pX <= X1 && pZ >= X2 && pZ <= Z1) {
 				return true;
 			} else {
 				return false;
@@ -162,14 +162,8 @@ public class Executor {
 		}
 	}
 	
-	public void clearRegions() {
-		for(int i = 0; i < 2; i++) {
-			regions[KILL][i] = null;
-			regions[FLOOR][i] = null;
-			regions[FIGHTING][i] = null;
-			regions[SPECTATING][i] = null;
-			regions[SPAWNING][i] = null;
-		}
+	public boolean clearRegions() {
+		
 	}
 	
 	public boolean validateSpleefState() {
@@ -241,15 +235,10 @@ public class Executor {
 			player.setFallDistance(0);
 			player.teleport(previousLocations.get(name));
 			previousLocations.remove(name);
-		} else if(registeredSpectators.contains(name)) {
+		} else {
 			registeredSpectators.remove(name);
 			Player spectator = plugin.acquireServer().getPlayer(name);
 			spectator.teleport(previousLocations.get(name));
-			previousLocations.remove(name);
-		} else {
-			Player player = plugin.acquireServer().getPlayer(name);
-			player.setFallDistance(0);
-			player.teleport(previousLocations.get(name));
 			previousLocations.remove(name);
 		}
 	}
