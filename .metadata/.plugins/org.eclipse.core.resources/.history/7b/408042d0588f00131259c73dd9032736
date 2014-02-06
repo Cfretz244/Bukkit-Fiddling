@@ -113,9 +113,9 @@ public final class Spleefer extends JavaPlugin implements Listener {
 						world = regions[FIGHTING][0].getWorld().getName();
 						utility.world = world;
 						listener.world = world;
-						utility.loadFloor();
 						if(utility.saveArena(player)) {
 							player.sendMessage(ChatColor.GREEN + spleefTag + "Arena Saved.");
+							utility.loadFloor();
 						} else {
 							finishedDefinition = true;
 							player.sendMessage(ChatColor.RED + spleefTag + "Unfortunately the arena could not be saved. Feel free to try again.");

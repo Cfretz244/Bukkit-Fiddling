@@ -336,12 +336,6 @@ public class Executor {
 				}
 			}
 			arenaString = arenaString.substring(0, arenaString.length() - 1) + "\n";
-			for(int i = 0; i < floor.length; i++) {
-				for(int k = 0; k < floor[i].length; k++) {
-					arenaString += floor[i][k].name() + "|";
-				}
-				arenaString = arenaString.substring(0, arenaString.length() - 1) + "\n";
-			}
 			pw.print(arenaString);
 			pw.close();
 			return true;
