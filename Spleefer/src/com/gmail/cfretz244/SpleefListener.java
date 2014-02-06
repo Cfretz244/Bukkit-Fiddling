@@ -21,9 +21,10 @@ public final class SpleefListener implements Listener {
 	HashSet<String> registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost;
 	HashMap<String, Boolean> startInfo;
 	Location[][] regions;
+	Material[][] floor;
 	Spleefer plugin;
 	Executor utility;
-	String spleefTag;
+	String spleefTag, world;
 	boolean settingUp, definingFightingRoom, definingFloor, definingSpawn, definingKill, definingSpectation, finishedDefinition, shouldListenForMovement, shouldListenForBlockInteraction;
 	boolean waitingToCommence, inRound;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;

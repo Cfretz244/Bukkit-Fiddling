@@ -1,0 +1,357 @@
+package com.gmail.cfretz244;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+
+public class Executor {
+	
+	HashSet<String> registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost;
+	HashMap<String, Location> previousLocations;
+	Location[][] regions;
+	Material[][] floor;
+	Spleefer plugin;
+	String world;
+	SpleefListener listener;
+	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
+	
+	public Executor(Location[][] regions, HashSet<String>registeredPlayers, HashSet<String> registeredSpectators, HashSet<String> listenTo, HashSet<String> inTrouble, HashSet<String> hasLost, Spleefer plugin) {
+		this.regions = regions;
+		this.registeredPlayers = registeredPlayers;
+		this.registeredSpectators = registeredSpectators;
+		this.listenTo = listenTo;
+		this.inTrouble = inTrouble;
+		this.hasLost = hasLost;
+		this.plugin = plugin;
+	}
+	
+	public void broadcastToRegisteredPlayers(String message) {
+		Iterator<String> players = listenTo.iterator();
+		while(players.hasNext()) {
+			Player player = plugin.acquireServer().getPlayer(players.next());
+			player.sendMessage(message);
+		}
+	}
+
+	public boolean containedIn(Location[] actionSpace, Location location) {
+		if(actionSpace[0] == null || actionSpace[1] == null || location == null) {
+			return false;
+		}
+		Location point1 = actionSpace[0];
+		Location point2 = actionSpace[1];
+		double X1 = point1.getX();
+		double X2 = point2.getX();
+		double Z1 = point1.getZ();
+		double Z2 = point2.getZ();
+		double Y1 = point1.getY();
+		double Y2 = point2.getY();
+		double pX = Math.floor(location.getX());
+		double pY = Math.floor(location.getY());
+		double pZ = Math.floor(location.getZ());
+		if(Y1 > Y2 && (pY < Y2 || pY > Y1)) {
+			return false;
+		} else if(Y1 == Y2 && pY != Y1) {
+			return false;
+		} else if(Y2 > Y1 && (pY < Y1 || pY > Y2)) {
+			return false;
+		}
+		if(X1 < X2 && Z1 > Z2) {
+			//case 1
+			if(pX >= X1 && pX <= X2 && pZ >= Z2 && pZ <= Z1) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if(X2 < X1 && Z1 > Z2) {
+			//case 2
+			if(pX >= X2 && pX <= X1 && pZ >= X2 && pZ <= Z1) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if(X1 < X2 && Z2 > Z1) {
+			//case 3
+			if(pX >= X1 && pX <= X2 && pZ >= Z1 && pZ <= Z2) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if(X2 < X1 && Z2 > Z1) {
+			//case 4
+			if(pX >= X2 && pX <= X1 && pZ >= Z1 && pZ <= Z2) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if(X1 < X2 && Z1 == Z2) {
+			//case 5
+			if(pX >= X1 && pX <= X2 && pZ == Z1) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if(X2 < X1 && Z1 == Z2) {
+			//case 6
+			if(pX >= X2 && pX <= X1 && pZ == Z1) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if(X1 == X2 && Z2 > Z1) {
+			//case 7
+			if(pZ >= Z1 && pZ <= Z2 && pX == X1) {
+				return true;
+			} else {
+				return false;
+			}
+		} else if(X1 == X2 && Z1 > Z2) {
+			//case 8
+			if(pZ >= Z2 && pZ >= Z1 && pX == X1) {
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return false;
+	}
+	
+	public boolean isBelow(Location[] actionSpace, Location location) {
+		double y = Math.min(actionSpace[0].getY(), actionSpace[1].getY());
+		if(location.getY() < y) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public void giveSpleefWand(Player asker) {
+		Inventory playerInv = asker.getInventory();
+		boolean needsToBeReplaced = true;
+		int chosenSlot = -1;
+		for(int i = 0; i < 36; i++) {
+			ItemStack stack = playerInv.getItem(i);
+			if(stack == null) {
+				if(chosenSlot == -1) {
+					chosenSlot = i;
+				}
+			} else {
+				Material stacktype = stack.getType();
+				if(stacktype == Material.BONE) {
+					needsToBeReplaced = false;
+					chosenSlot = i;
+				}
+			}
+		}
+		if(chosenSlot != -1 && needsToBeReplaced) {
+			ItemStack replacementStack = new ItemStack(Material.BONE);
+			playerInv.setItem(chosenSlot, replacementStack);
+		}
+	}
+	
+	public boolean validateSpleefState() {
+		boolean mayBegin = true;
+		for(int i = 0; i < 2; i++) {
+			if(regions[FIGHTING][i] == null || regions[SPECTATING][i] == null || regions[SPAWNING][i] == null || regions[KILL][i] == null || regions[FLOOR][i] == null) {
+				mayBegin = false;
+			}
+		}
+		return mayBegin;
+	}
+	
+	public boolean validatePlayerNames(Player sender, String[] args) {
+		for(int i = 1; i < args.length; i++) {
+			if(plugin.acquireServer().getPlayer(args[i]) == null) {
+				sender.sendMessage("Sorry, player " + args[i] + " does not appear to exist. Perhaps they're not online?");
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	public void movePlayersToSpawn() {
+		double y = Math.min(regions[SPAWNING][0].getY(), regions[SPAWNING][1].getY()) + 1.2;
+		double x = (regions[SPAWNING][0].getX() + regions[SPAWNING][1].getX()) / 2;
+		double z = (regions[SPAWNING][0].getZ() + regions[SPAWNING][1].getZ()) / 2;
+		Location newLocale = new Location(regions[SPAWNING][0].getWorld(), x, y, z);
+		Iterator<String> players = registeredPlayers.iterator();
+		if(previousLocations == null) {
+			previousLocations = new HashMap<String, Location>();
+		}
+		while(players.hasNext()) {
+			String name = players.next();
+			Player teleporter = plugin.acquireServer().getPlayer(name);
+			if(!previousLocations.containsKey(name)) {
+				previousLocations.put(name, teleporter.getLocation());
+			}
+			listener.startInfo.put(name.toLowerCase(), new Boolean(true));
+			teleporter.teleport(newLocale);
+		}
+	}
+	
+	public void moveSpectator(String name) {
+		double y = Math.min(regions[SPECTATING][0].getY(), regions[SPECTATING][1].getY()) + 1;
+		double x = (regions[SPECTATING][0].getX() + regions[SPECTATING][1].getX()) / 2;
+		double z = (regions[SPECTATING][0].getZ() + regions[SPECTATING][1].getZ()) / 2;
+		Location newLocale = new Location(regions[SPECTATING][0].getWorld(), x, y, z);
+		Player spectator = plugin.acquireServer().getPlayer(name);
+		if(previousLocations == null) {
+			previousLocations = new HashMap<String, Location>();
+		}
+		if(!previousLocations.containsKey(spectator.getName())) {
+			previousLocations.put(spectator.getName(), spectator.getLocation());
+		}
+		spectator.teleport(newLocale);
+	}
+	
+	public void makePlayerSpectator(String name) {
+		registeredPlayers.remove(name);
+		registeredSpectators.add(name);
+		plugin.acquireServer().getPlayer(name).setFallDistance(0);
+		moveSpectator(name);
+	}
+	
+	public void removePlayer(String name) {
+		if(registeredPlayers.contains(name)) {
+			registeredPlayers.remove(name);
+			Player player = plugin.acquireServer().getPlayer(name);
+			player.setFallDistance(0);
+			player.teleport(previousLocations.get(name));
+			previousLocations.remove(name);
+		} else {
+			registeredSpectators.remove(name);
+			Player spectator = plugin.acquireServer().getPlayer(name);
+			spectator.teleport(previousLocations.get(name));
+			previousLocations.remove(name);
+		}
+	}
+	
+	public void validateGameState() {
+		if(registeredPlayers.size() == 1) {
+			String winner = new String();
+			Iterator<String> players = registeredPlayers.iterator();
+			while(players.hasNext()) {
+				String name = players.next();
+				if(!hasLost.contains(name)) {
+					winner = name;
+				}
+			}
+			plugin.endRound(winner);
+		}
+	}
+	
+	public void cleanup() {
+		Iterator<String> players = listenTo.iterator();
+		while(players.hasNext()) {
+			String name = players.next();
+			if(registeredPlayers.contains(name)) {
+				registeredPlayers.remove(name);
+			}
+			if(registeredSpectators.contains(name)) {
+				registeredSpectators.remove(name);
+			}
+			if(hasLost.contains(name)) {
+				hasLost.remove(name);
+			}
+			if(inTrouble.contains(name)) {
+				inTrouble.remove(name);
+			}
+			removePlayer(name);
+		}
+	}
+	
+	public void loadFloor() {
+		Location point1 = regions[FLOOR][0];
+		Location point2 = regions[FLOOR][1];
+		Location startingPoint;
+		int width = (int)Math.abs(point1.getX() - point2.getX());
+		int height = (int)Math.abs(point1.getZ() - point2.getZ());
+		floor = new Material[height][width];
+		plugin.floor = floor;
+		listener.floor = floor;
+        if(point1.getX() < point2.getX()) {
+        	if(point1.getZ() < point2.getZ()) {
+        		startingPoint = point1;
+        	} else {
+        		double chosenX = point2.getX() - width;
+        		double chosenY = point1.getY();
+        		double chosenZ = point1.getZ() - height;
+        		World world = plugin.acquireServer().getWorld(this.world);
+        		Location chosenLocation = new Location(world, chosenX, chosenY, chosenZ);
+        	}
+        } else {
+        	if(point1.getZ() < point2.getZ()) {
+        		
+        	} else {
+        		startingPoint = point2;
+        	}
+        }
+	}
+	
+	public void restoreFloor() {
+		
+	}
+	
+	public boolean saveArena(Player player) {
+		try {
+			File arenas = new File("plugins/spleefer.yml");
+			if(arenas.exists()) {
+				arenas.delete();
+			}
+			arenas.createNewFile();
+			FileWriter writer = new FileWriter(arenas, true);
+			PrintWriter pw = new PrintWriter(writer);
+			String arenaString = new String(world + "|");
+			for(int i = 0; i < 5; i++) {
+				for(int k = 0; k < 2; k++) {
+					arenaString += regions[i][k].getX() + "|";
+					arenaString += regions[i][k].getY() + "|";
+					arenaString += regions[i][k].getZ() + "|";
+				}
+			}
+			arenaString = arenaString.substring(0, arenaString.length() - 1);
+			pw.print(arenaString);
+			pw.close();
+			return true;
+		} catch(IOException e) {
+			return false;
+		}
+	}
+	
+	public void loadArena(File arenaInfo) {
+		String arenaString;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader(arenaInfo));
+			arenaString = br.readLine();
+			br.close();
+		} catch(Exception e) {
+			plugin.acquireServer().getLogger().info("Arena loading failed.");
+			return;
+		}
+		String[] specifics = arenaString.split("\\|");
+		String world = specifics[0];
+		for(int i = 4; i >= 0; i--) {
+			int index = (i + 1) * 6;
+			for(int k = 1; k >= 0; k--) {
+				double z = Double.parseDouble(specifics[index--]);
+				double y = Double.parseDouble(specifics[index--]);
+				double x = Double.parseDouble(specifics[index--]);
+				Location locale = new Location(plugin.acquireServer().getWorld(world), x, y, z);
+				regions[i][k] = locale;
+			}
+		}
+	}
+
+}

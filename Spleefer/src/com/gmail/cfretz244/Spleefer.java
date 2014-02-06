@@ -2,10 +2,10 @@ package com.gmail.cfretz244;
 
 import java.io.File;
 import java.util.HashSet;
-import java.util.Iterator;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -17,9 +17,10 @@ public final class Spleefer extends JavaPlugin implements Listener {
 	
 	HashSet<String> registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost;
 	Location[][] regions;
+	Material[][] floor;
 	SpleefListener listener;
 	Executor utility;
-	String spleefTag;
+	String spleefTag, world;
 	boolean settingUp, definingFightingRoom, definingFloor, definingSpawn, definingKill, definingSpectation, finishedDefinition, inRound;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
@@ -52,7 +53,9 @@ public final class Spleefer extends JavaPlugin implements Listener {
 			if(cmd.getName().equals("spleef")) {
 				if(args[0].equals("setup")) {
 					if(!settingUp) {
-						listenTo.add(name.toLowerCase());
+						if(!listenTo.contains(name.toLowerCase())) {
+							listenTo.add(name.toLowerCase());
+						}
 						settingUp = true;
 						definingFightingRoom = true;
 						listener.settingUp = true;
@@ -97,6 +100,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 							finishedDefinition = true;
 							listener.finishedDefinition = true;
 							listenTo.remove(name);
+							settingUp = false;
 						} else {
 							player.sendMessage(ChatColor.RED + spleefTag + "Really not sure how you got here. This message was added more for completeness than anything else. Either way, something is wrong. I guess try resetting the server?");
 						}
@@ -104,20 +108,20 @@ public final class Spleefer extends JavaPlugin implements Listener {
 						player.sendMessage(ChatColor.RED + spleefTag + "But you weren't doing anything.");
 					}
 				} else if(args[0].equals("save")) {
-					if(settingUp) {
-						if(finishedDefinition) {
-							finishedDefinition = false;
-							if(utility.saveArena(player, regions[FIGHTING][0].getWorld().getName())) {
-								player.sendMessage(ChatColor.GREEN + spleefTag + "Arena Saved.");
-							} else {
-								finishedDefinition = true;
-								player.sendMessage(ChatColor.RED + spleefTag + "Unfortunately the arena could not be saved. Feel free to try again.");
-							}
+					if(finishedDefinition) {
+						finishedDefinition = false;
+						world = regions[FIGHTING][0].getWorld().getName();
+						utility.world = world;
+						listener.world = world;
+						if(utility.saveArena(player)) {
+							player.sendMessage(ChatColor.GREEN + spleefTag + "Arena Saved.");
+							utility.loadFloor();
 						} else {
-							player.sendMessage(ChatColor.RED + spleefTag + "You need to define an arena before you can save.");
+							finishedDefinition = true;
+							player.sendMessage(ChatColor.RED + spleefTag + "Unfortunately the arena could not be saved. Feel free to try again.");
 						}
 					} else {
-						player.sendMessage(ChatColor.RED + spleefTag + "There's nothing to save.");
+						player.sendMessage(ChatColor.RED + spleefTag + "You need to define an arena before you can save.");
 					}
 				} else if(args[0].equals("discard")) {
 					if(settingUp) {
@@ -198,7 +202,7 @@ public final class Spleefer extends JavaPlugin implements Listener {
 	public void endRound(String winner) {
 		utility.broadcastToRegisteredPlayers(ChatColor.GOLD + spleefTag + winner + " is the winner! The round will now end.");
 		utility.cleanup();
-		
+		utility.restoreFloor();
 	}
 	
 	public Server acquireServer() {

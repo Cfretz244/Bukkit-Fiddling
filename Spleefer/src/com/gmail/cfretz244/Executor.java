@@ -12,6 +12,8 @@ import java.util.Iterator;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.BlockState;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -21,7 +23,9 @@ public class Executor {
 	HashSet<String> registeredPlayers, registeredSpectators, listenTo, inTrouble, hasLost;
 	HashMap<String, Location> previousLocations;
 	Location[][] regions;
+	Material[][] floor;
 	Spleefer plugin;
+	String world;
 	SpleefListener listener;
 	static final int KILL = 0, FLOOR = 1, FIGHTING = 2, SPECTATING = 3, SPAWNING = 4;
 	
@@ -269,7 +273,52 @@ public class Executor {
 		}
 	}
 	
-	public boolean saveArena(Player player, String world) {
+	public void loadFloor() {
+		Location point1 = regions[FLOOR][0];
+		Location point2 = regions[FLOOR][1];
+		Location startingPoint;
+        World world = plugin.acquireServer().getWorld(this.world);
+		int width = (int)Math.abs(point1.getX() - point2.getX());
+		int height = (int)Math.abs(point1.getZ() - point2.getZ());
+		floor = new Material[height][width];
+		plugin.floor = floor;
+		listener.floor = floor;
+        if(point1.getX() < point2.getX()) {
+        	if(point1.getZ() < point2.getZ()) {
+        		startingPoint = point1;
+        	} else {
+        		double chosenX = point1.getX();
+        		double chosenY = point1.getY();
+        		double chosenZ = point1.getZ() - height;
+        		startingPoint = new Location(world, chosenX, chosenY, chosenZ);
+        	}
+        } else {
+        	if(point1.getZ() < point2.getZ()) {
+        		double chosenX = point1.getX() - width;
+        		double chosenY = point2.getY();
+        		double chosenZ = point2.getZ() - height;
+        		startingPoint = new Location(world, chosenX, chosenY, chosenZ);
+        	} else {
+        		startingPoint = point2;
+        	}
+        }
+        for(int z = 0; z < height; z++) {
+        	double startX = startingPoint.getX();
+        	double startY = startingPoint.getY();
+        	double startZ = startingPoint.getZ() + z;
+        	for(int x = 0; x < width; x++) {
+        		Location locale = new Location(world, startX + x, startY, startZ);
+        		BlockState currentBlock = world.getBlockAt(locale).getState();
+        		floor[z][x] = currentBlock.getType();
+        	}
+        }
+	}
+	
+	public void restoreFloor() {
+		
+	}
+	
+	public boolean saveArena(Player player) {
 		try {
 			File arenas = new File("plugins/spleefer.yml");
 			if(arenas.exists()) {
