@@ -379,9 +379,7 @@ public class Executor {
 				specifics = floorString.split("\\|");
 				for(int k = 0; k < specifics.length; k++) {
 					Material mat = Material.valueOf(specifics[k]);
-					floor[i][k] = mat;
 				}
-				floorString = br.readLine();
 			}
 			br.close();
 		} catch(Exception e) {

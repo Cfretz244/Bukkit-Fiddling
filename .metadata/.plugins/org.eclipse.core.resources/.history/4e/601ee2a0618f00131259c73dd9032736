@@ -381,7 +381,6 @@ public class Executor {
 					Material mat = Material.valueOf(specifics[k]);
 					floor[i][k] = mat;
 				}
-				floorString = br.readLine();
 			}
 			br.close();
 		} catch(Exception e) {

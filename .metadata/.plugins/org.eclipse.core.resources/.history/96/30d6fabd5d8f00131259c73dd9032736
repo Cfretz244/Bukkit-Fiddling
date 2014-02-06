@@ -336,7 +336,6 @@ public class Executor {
 				}
 			}
 			arenaString = arenaString.substring(0, arenaString.length() - 1) + "\n";
-			arenaString += floor.length + "|" + floor[0].length + "\n";
 			for(int i = 0; i < floor.length; i++) {
 				for(int k = 0; k < floor[i].length; k++) {
 					arenaString += floor[i][k].name() + "|";
@@ -352,43 +351,27 @@ public class Executor {
 	}
 	
 	public void loadArena(File arenaInfo) {
+		String arenaString;
 		try {
 			BufferedReader br = new BufferedReader(new FileReader(arenaInfo));
-			String arenaString = br.readLine();
-			String[] specifics = arenaString.split("\\|");
-			String world = specifics[0];
-			for(int i = 4; i >= 0; i--) {
-				int index = (i + 1) * 6;
-				for(int k = 1; k >= 0; k--) {
-					double z = Double.parseDouble(specifics[index--]);
-					double y = Double.parseDouble(specifics[index--]);
-					double x = Double.parseDouble(specifics[index--]);
-					Location locale = new Location(plugin.acquireServer().getWorld(world), x, y, z);
-					regions[i][k] = locale;
-				}
-			}
-			String floorString = br.readLine();
-			specifics = floorString.split("\\|");
-			int zSize = Integer.parseInt(specifics[0]);
-			int xSize = Integer.parseInt(specifics[1]);
-			if(floor == null) {
-				floor = new Material[zSize][xSize];
-			}
-			floorString = br.readLine();
-			for(int i = 0; floorString != null; i++) {
-				specifics = floorString.split("\\|");
-				for(int k = 0; k < specifics.length; k++) {
-					Material mat = Material.valueOf(specifics[k]);
-					floor[i][k] = mat;
-				}
-				floorString = br.readLine();
-			}
+			arenaString = br.readLine();
 			br.close();
 		} catch(Exception e) {
 			plugin.acquireServer().getLogger().info("Arena loading failed.");
 			return;
 		}
-		
+		String[] specifics = arenaString.split("\\|");
+		String world = specifics[0];
+		for(int i = 4; i >= 0; i--) {
+			int index = (i + 1) * 6;
+			for(int k = 1; k >= 0; k--) {
+				double z = Double.parseDouble(specifics[index--]);
+				double y = Double.parseDouble(specifics[index--]);
+				double x = Double.parseDouble(specifics[index--]);
+				Location locale = new Location(plugin.acquireServer().getWorld(world), x, y, z);
+				regions[i][k] = locale;
+			}
+		}
 	}
 
 }
