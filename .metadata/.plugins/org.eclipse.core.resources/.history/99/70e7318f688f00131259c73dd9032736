@@ -44,8 +44,6 @@ public final class Spleefer extends JavaPlugin implements Listener {
 		if(check.exists()) {
 			utility.loadArena(check);
 			this.world = regions[FIGHTING][0].getWorld().getName();
-			utility.world = this.world;
-			listener.world = this.world;
 		}
 	}
 	

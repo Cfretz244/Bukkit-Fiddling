@@ -273,48 +273,7 @@ public class Executor {
 		}
 	}
 	
-	public void loadFloor() {
-		Location point1 = regions[FLOOR][0];
-		Location point2 = regions[FLOOR][1];
-		Location startingPoint;
-        World world = plugin.acquireServer().getWorld(this.world);
-		int width = (int)Math.abs(point1.getX() - point2.getX());
-		int height = (int)Math.abs(point1.getZ() - point2.getZ());
-		floor = new Material[height][width];
-		plugin.floor = floor;
-		listener.floor = floor;
-        if(point1.getX() < point2.getX()) {
-        	if(point1.getZ() < point2.getZ()) {
-        		startingPoint = point1;
-        	} else {
-        		double chosenX = point1.getX();
-        		double chosenY = point1.getY();
-        		double chosenZ = point1.getZ() - height;
-        		startingPoint = new Location(world, chosenX, chosenY, chosenZ);
-        	}
-        } else {
-        	if(point1.getZ() < point2.getZ()) {
-        		double chosenX = point1.getX() - width;
-        		double chosenY = point2.getY();
-        		double chosenZ = point2.getZ() - height;
-        		startingPoint = new Location(world, chosenX, chosenY, chosenZ);
-        	} else {
-        		startingPoint = point2;
-        	}
-        }
-        for(int z = 0; z < height; z++) {
-        	double startX = startingPoint.getX();
-        	double startY = startingPoint.getY();
-        	double startZ = startingPoint.getZ() + z;
-        	for(int x = 0; x < width; x++) {
-        		Location locale = new Location(world, startX + x, startY, startZ);
-        		BlockState currentBlock = world.getBlockAt(locale).getState();
-        		floor[z][x] = currentBlock.getType();
-        	}
-        }
-	}
-	
-	public void restoreFloor() {
+	private Location calculateStartingPoint() {
 		Location point1 = regions[FLOOR][0];
 		Location point2 = regions[FLOOR][1];
 		Location startingPoint;
@@ -340,19 +299,32 @@ public class Executor {
         		startingPoint = point2;
         	}
         }
-		for(int z = 0; z < height; z++) {
+		return startingPoint;
+	}
+	
+	public void loadFloor() {
+		Location startingPoint = calculateStartingPoint();
+		int width = (int)Math.abs(point1.getX() - point2.getX());
+		int height = (int)Math.abs(point1.getZ() - point2.getZ());
+        for(int z = 0; z < height; z++) {
         	double startX = startingPoint.getX();
         	double startY = startingPoint.getY();
         	double startZ = startingPoint.getZ() + z;
         	for(int x = 0; x < width; x++) {
         		Location locale = new Location(world, startX + x, startY, startZ);
         		BlockState currentBlock = world.getBlockAt(locale).getState();
-        		if(currentBlock.getType() != floor[z][x]) {
-        			currentBlock.setType(floor[z][x]);
-        			currentBlock.update(true);
-        		}
+        		floor[z][x] = currentBlock.getType();
         	}
         }
+	}
+	
+	public void restoreFloor() {
+		Location point1 = regions[FLOOR][0];
+		Location point2 = regions[FLOOR][1];
+		Location startingPoint;
+        World world = plugin.acquireServer().getWorld(this.world);
+		int width = (int)Math.abs(point1.getX() - point2.getX());
+		int height = (int)Math.abs(point1.getZ() - point2.getZ());
 	}
 	
 	public boolean saveArena(Player player) {

@@ -347,10 +347,7 @@ public class Executor {
         	for(int x = 0; x < width; x++) {
         		Location locale = new Location(world, startX + x, startY, startZ);
         		BlockState currentBlock = world.getBlockAt(locale).getState();
-        		if(currentBlock.getType() != floor[z][x]) {
-        			currentBlock.setType(floor[z][x]);
-        			currentBlock.update(true);
-        		}
+        		floor[z][x] = currentBlock.getType();
         	}
         }
 	}
